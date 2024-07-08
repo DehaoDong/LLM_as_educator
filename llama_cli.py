@@ -10,8 +10,8 @@ import threading
 
 
 def main(
-        ckpt_dir: str = 'CodeLlama-7b-Instruct/',
-        tokenizer_path: str = 'CodeLlama-7b-Instruct/tokenizer.model',
+        ckpt_dir: str = 'codellama/CodeLlama-7b-Instruct/',
+        tokenizer_path: str = 'codellama/CodeLlama-7b-Instruct/tokenizer.model',
         temperature: float = 0.2,
         top_p: float = 0.95,
         max_seq_len: int = 512,

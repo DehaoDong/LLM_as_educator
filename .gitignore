@@ -161,5 +161,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-codellama-main/CodeLlama-7b-Instruct/
-codellama-main/CodeLlama-13b-Instruct/
+codellama/CodeLlama-7b-Instruct/
+codellama/CodeLlama-13b-Instruct/
