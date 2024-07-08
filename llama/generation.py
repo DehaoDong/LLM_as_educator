@@ -1,6 +1,3 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
-
 import json
 import os
 import sys
@@ -10,11 +7,6 @@ from typing import List, Literal, Optional, Tuple, TypedDict
 
 import torch
 import torch.nn.functional as F
-from fairscale.nn.model_parallel.initialize import (
-    get_model_parallel_rank,
-    initialize_model_parallel,
-    model_parallel_is_initialized,
-)
 
 from llama.model import ModelArgs, Transformer
 from llama.tokenizer import Tokenizer
@@ -28,12 +20,10 @@ else:
 
 Role = Literal["system", "user", "assistant"]
 
-
 class Message(TypedDict):
     role: Role
     content: str
     destination: str  # required for model responses
-
 
 class InfillingPrediction(TypedDict, total=False):
     generation: str
@@ -41,18 +31,15 @@ class InfillingPrediction(TypedDict, total=False):
     tokens: List[str]  # not required
     logprobs: List[float]  # not required
 
-
 class CompletionPrediction(TypedDict, total=False):
     generation: str
     tokens: List[str]  # not required
     logprobs: List[float]  # not required
 
-
 class ChatPrediction(TypedDict, total=False):
     generation: Message
     tokens: List[str]  # not required
     logprobs: List[float]  # not required
-
 
 Dialog = List[Message]
 
@@ -62,7 +49,6 @@ B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 SPECIAL_TAGS = [B_INST, E_INST, "<<SYS>>", "<</SYS>>", "<step>"]
 UNSAFE_ERROR = "Error: special tags are not allowed as part of the prompt."
 
-
 class Llama:
     @staticmethod
     def build(
@@ -70,54 +56,43 @@ class Llama:
         tokenizer_path: str,
         max_seq_len: int,
         max_batch_size: int,
-        model_parallel_size: Optional[int] = None,
+        device: str = "cuda",
     ) -> "Llama":
-        if not torch.distributed.is_initialized():
-            if device == "cuda":
-                torch.distributed.init_process_group("nccl")
-            else:
-                torch.distributed.init_process_group("gloo")
-        if not model_parallel_is_initialized():
-            if model_parallel_size is None:
-                model_parallel_size = int(os.environ.get("WORLD_SIZE", 1))
-            initialize_model_parallel(model_parallel_size)
-
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
+        # Remove distributed initialization
+        local_rank = 0
         if device == "cuda":
             torch.cuda.set_device(local_rank)
 
-        # seed must be the same in all processes
+        # Seed for reproducibility
         torch.manual_seed(1)
-
-        if local_rank > 0:
-            sys.stdout = open(os.devnull, "w")
 
         start_time = time.time()
         checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
         assert len(checkpoints) > 0, f"no checkpoint files found in {ckpt_dir}"
-        assert model_parallel_size == len(
-            checkpoints
-        ), f"Loading a checkpoint for MP={len(checkpoints)} but world size is {model_parallel_size}"
-        ckpt_path = checkpoints[get_model_parallel_rank()]
+
+        # Load the first checkpoint (assuming single process)
+        ckpt_path = checkpoints[0]
         checkpoint = torch.load(ckpt_path, map_location="cpu")
+
         with open(Path(ckpt_dir) / "params.json", "r") as f:
             params = json.loads(f.read())
 
-        model_args: ModelArgs = ModelArgs(
+        model_args = ModelArgs(
             max_seq_len=max_seq_len,
             max_batch_size=max_batch_size,
             **params,
         )
         tokenizer = Tokenizer(model_path=tokenizer_path)
         model_args.vocab_size = tokenizer.n_words
-        # support for mac
+
         if device == "cuda":
             if torch.cuda.is_bf16_supported():
-                torch.set_default_tensor_type(torch.cuda.BFloat16Tensor)
+                torch.set_default_dtype(torch.bfloat16)
             else:
-                torch.set_default_tensor_type(torch.cuda.HalfTensor)
+                torch.set_default_dtype(torch.float16)
         else:
-            torch.set_default_tensor_type(torch.HalfTensor)
+            torch.set_default_dtype(torch.float32)
+
         model = Transformer(model_args)
         model.load_state_dict(checkpoint, strict=False)
         model.to(device)
@@ -458,8 +433,6 @@ class Llama:
             for t, unsafe in zip(generation_tokens, unsafe_requests)
         ]
 
-
-
 def sample_top_p(probs, p):
     probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
     probs_sum = torch.cumsum(probs_sort, dim=-1)
@@ -469,7 +442,6 @@ def sample_top_p(probs, p):
     next_token = torch.multinomial(probs_sort, num_samples=1)
     next_token = torch.gather(probs_idx, -1, next_token)
     return next_token
-
 
 def infilling_prompt_tokens(
     tokenizer: Tokenizer,
@@ -501,7 +473,6 @@ def infilling_prompt_tokens(
             + tokenizer.encode_infilling(suf)
             + [tokenizer.middle_id]
         )
-
 
 def dialog_prompt_tokens(tokenizer: Tokenizer, dialog: Dialog) -> List[int]:
     """

@@ -7,7 +7,7 @@ from llama import Llama
 import datetime
 import time
 import threading
-
+import torch
 
 def main(
         ckpt_dir: str = 'codellama/CodeLlama-7b-Instruct/',
@@ -17,12 +17,15 @@ def main(
         max_seq_len: int = 512,
         max_batch_size: int = 8,
         max_gen_len: Optional[int] = None,
+        device: str = 'cuda'
 ):
+    # Initialize the Llama model
     generator = Llama.build(
         ckpt_dir=ckpt_dir,
         tokenizer_path=tokenizer_path,
         max_seq_len=max_seq_len,
         max_batch_size=max_batch_size,
+        device=device
     )
 
     def display_thinking_time(start_time):
@@ -62,7 +65,7 @@ def main(
 
         for result in results:
             print(
-                f"> CodeLlama({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}):{result['generation']['content']}")
+                f"> CodeLlama({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): {result['generation']['content']}")
             print("\n=============================================================\n")
 
 
