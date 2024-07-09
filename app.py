@@ -8,13 +8,15 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Load the model
-ckpt_dir = 'codellama/CodeLlama-7b-Instruct/'
-tokenizer_path = 'codellama/CodeLlama-7b-Instruct/tokenizer.model'
+model = 'CodeLlama-7b-Instruct'
 temperature = 0.2
 top_p = 0.95
 max_seq_len = 512
 max_batch_size = 8
 max_gen_len = None
+
+ckpt_dir = f'codellama/{model}/'
+tokenizer_path = f'codellama/{model}/tokenizer.model'
 
 generator = Llama.build(
     ckpt_dir=ckpt_dir,
@@ -25,7 +27,7 @@ generator = Llama.build(
 
 
 # Function to handle model inference
-def generate_response(prompt, temperature=0.2, top_p=0.95, max_gen_len=None):
+def generate_response(prompt):
     instructions = [
         [
             {
@@ -60,15 +62,11 @@ def generate():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    start_time = time.time()
-
     # Call the generate_response function
-    response_content = generate_response(prompt, temperature, top_p, max_gen_len)
+    response_content = generate_response(prompt)
 
-    elapsed_time = time.time() - start_time
     response = {
         "response": response_content,
-        "elapsed_time": elapsed_time,
     }
 
     return jsonify(response)
