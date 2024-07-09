@@ -5,6 +5,7 @@ from codellama.llama import Llama
 
 # Initialize Flask application
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Load the model
 ckpt_dir = 'codellama/CodeLlama-7b-Instruct/'
@@ -43,8 +44,10 @@ def generate_response(prompt, temperature=0.2, top_p=0.95, max_gen_len=None):
 
     response = results[0]['generation']['content']
 
+    response = response.trip()
+
     print(f'response: {response}')
-    
+
     return response
 
 

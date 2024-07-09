@@ -41,6 +41,7 @@
             flex-grow: 1;
             overflow-y: auto;
             padding: 20px;
+            padding-bottom: 100px; /* Adjust padding to prevent overlap */
             background-color: #fff; /* Unified background color */
         }
         .message {
@@ -64,6 +65,7 @@
             padding: 10px;
             border-radius: 5px;
             max-width: 70%;
+            white-space: pre-wrap; /* Ensure whitespace is preserved */
         }
         .message.user .text {
             background-color: #e0e0e0;
@@ -117,6 +119,10 @@
             }
         }
 
+        function formatText(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+
         async function generateResponse() {
             const prompt = document.getElementById('prompt').value;
             const chatBox = document.getElementById('chat-box');
@@ -130,7 +136,7 @@
             userIcon.className = 'icon';
             const userText = document.createElement('div');
             userText.className = 'text';
-            userText.textContent = prompt;
+            userText.innerHTML = formatText(prompt);
             userMessage.appendChild(userIcon);
             userMessage.appendChild(userText);
             chatBox.appendChild(userMessage);
@@ -154,7 +160,7 @@
             const startTime = Date.now();
             const interval = setInterval(() => {
                 const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                botThinkingText.textContent = `CodeLlama is thinking... ${elapsedSeconds} seconds`;
+                botThinkingText.textContent = `CodeLlama is thinking... ${elapsedSeconds}s`;
             }, 1000);
 
             try {
@@ -177,7 +183,7 @@
                 botIcon.className = 'icon';
                 const botText = document.createElement('div');
                 botText.className = 'text';
-                botText.textContent = data.response;
+                botText.innerHTML = formatText(data.response);
                 botMessage.appendChild(botIcon);
                 botMessage.appendChild(botText);
                 chatBox.appendChild(botMessage);
