@@ -44,7 +44,7 @@ def generate_response(prompt, temperature=0.2, top_p=0.95, max_gen_len=None):
 
     response = results[0]['generation']['content']
 
-    response = response.trip()
+    response = response.strip()
 
     print(f'response: {response}')
 
