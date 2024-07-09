@@ -3,45 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Interaction</title>
+    <title>LLM as Educator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 50px;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff; /* Unified background color */
         }
-        #response {
-            margin-top: 20px;
+        #header {
+            width: 100%;
+            background-color: #fff;
             padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            font-size: 14px;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        #chat-container {
+            width: 60%;
+            max-width: 800px;
+            margin-top: 50px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff; /* Unified background color */
+        }
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fff; /* Unified background color */
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .message.user {
+            background-color: #e0e0e0;
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+        .message.bot {
+            background-color: #fff;
+            text-align: left;
+        }
+        .message.thinking {
+            background-color: #fff;
+            text-align: left;
+        }
+        .message .icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 10px;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60%;
+            position: fixed;
+            bottom: 0;
+            background-color: #fff;
+            padding: 10px;
+        }
+        textarea {
+            flex-grow: 1;
+            margin: 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            background-color: #e0e0e0;
+            box-shadow: none; /* Remove box shadow */
         }
     </style>
 </head>
 <body>
-    <h1>Interact with the LLM</h1>
-    <form id="promptForm">
-        <label for="prompt">Enter your prompt:</label>
-        <textarea id="prompt" name="prompt" rows="4" cols="50"></textarea><br><br>
-        <button type="submit">Generate</button>
-    </form>
-    <div id="response"></div>
-    <script>
-        document.getElementById('promptForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const prompt = document.getElementById('prompt').value;
-            const responseDiv = document.getElementById('response');
-            responseDiv.innerHTML = 'Generating...';
+    <div id="header">Meta CodeLlama-7B-Instruct</div>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <div class="input-container">
+            <textarea id="prompt" placeholder="Enter your prompt here..." rows="3" onkeydown="handleKeyDown(event)"></textarea>
+        </div>
+    </div>
 
-            const response = await fetch('/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ prompt: prompt })
-            });
-            const result = await response.json();
-            responseDiv.innerHTML = `<strong>Response:</strong><br>${result.response}`;
-        });
+    <script>
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                generateResponse();
+            }
+        }
+
+        async function generateResponse() {
+            const prompt = document.getElementById('prompt').value;
+            const chatBox = document.getElementById('chat-box');
+            if (!prompt) return;
+
+            // Append user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            const userIcon = document.createElement('img');
+            userIcon.src = 'images/user.png'; // Replace with the actual path to the user icon
+            userIcon.className = 'icon';
+            userMessage.appendChild(userIcon);
+            const userText = document.createElement('div');
+            userText.textContent = prompt;
+            userMessage.appendChild(userText);
+            chatBox.appendChild(userMessage);
+
+            // Clear the prompt input
+            document.getElementById('prompt').value = '';
+
+            // Append bot thinking message
+            const botThinkingMessage = document.createElement('div');
+            botThinkingMessage.className = 'message thinking';
+            const botIconThinking = document.createElement('img');
+            botIconThinking.src = 'images/AI.png'; // Replace with the actual path to the bot icon
+            botIconThinking.className = 'icon';
+            botThinkingMessage.appendChild(botIconThinking);
+            const botThinkingText = document.createElement('div');
+            botThinkingText.textContent = 'CodeLlama is thinking...';
+            botThinkingMessage.appendChild(botThinkingText);
+            chatBox.appendChild(botThinkingMessage);
+
+            const startTime = Date.now();
+            const interval = setInterval(() => {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                botThinkingText.textContent = `CodeLlama is thinking... ${elapsedSeconds} seconds`;
+            }, 1000);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                });
+
+                const data = await response.json();
+                clearInterval(interval);
+
+                // Append bot response message
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                const botIcon = document.createElement('img');
+                botIcon.src = 'path/to/bot-icon.png'; // Replace with the actual path to the bot icon
+                botIcon.className = 'icon';
+                botMessage.appendChild(botIcon);
+                const botText = document.createElement('div');
+                botText.textContent = data.response;
+                botMessage.appendChild(botText);
+                chatBox.appendChild(botMessage);
+
+                // Remove thinking message
+                chatBox.removeChild(botThinkingMessage);
+            } catch (error) {
+                clearInterval(interval);
+                botThinkingText.textContent = 'Error: Could not generate response.';
+            }
+
+            // Scroll to the bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     </script>
 </body>
 </html>

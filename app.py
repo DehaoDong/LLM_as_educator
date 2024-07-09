@@ -1,8 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from typing import Optional
-import datetime
 import time
-import threading
 from codellama.llama import Llama
 
 # Initialize Flask application
@@ -68,6 +66,12 @@ def generate():
     }
 
     return jsonify(response)
+
+
+# Serve the frontend
+@app.route('/')
+def serve_frontend():
+    return render_template('index.html')
 
 
 # Start the Flask application
