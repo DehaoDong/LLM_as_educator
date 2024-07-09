@@ -100,6 +100,17 @@
             background-color: #e0e0e0;
             box-shadow: none; /* Remove box shadow */
         }
+        pre {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap; /* Ensure long lines wrap */
+        }
+        code {
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -120,7 +131,13 @@
         }
 
         function formatText(text) {
-            return text.replace(/\n/g, '<br>');
+            // Replace newline characters with <br> tags
+            let formattedText = text.replace(/\n/g, '<br>');
+
+            // Replace ``` blocks with <pre><code> blocks
+            formattedText = formattedText.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>');
+
+            return formattedText;
         }
 
         async function generateResponse() {
