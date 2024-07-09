@@ -29,7 +29,7 @@
             z-index: 1000;
         }
         #chat-container {
-            width: 60%;
+            width: 80%;
             max-width: 800px;
             margin-top: 50px;
             flex-grow: 1;
@@ -44,29 +44,38 @@
             background-color: #fff; /* Unified background color */
         }
         .message {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            margin: 10px 0;
         }
         .message.user {
-            background-color: #e0e0e0;
-            text-align: right;
             flex-direction: row-reverse;
         }
-        .message.bot {
-            background-color: #fff;
-            text-align: left;
-        }
-        .message.thinking {
-            background-color: #fff;
-            text-align: left;
+        .message.bot, .message.thinking {
+            flex-direction: row;
         }
         .message .icon {
             width: 40px;
             height: 40px;
             margin: 0 10px;
+        }
+        .message .text {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+        }
+        .message.user .text {
+            background-color: #e0e0e0;
+            text-align: right;
+        }
+        .message.bot .text {
+            background-color: #fff;
+            text-align: left;
+        }
+        .message.thinking .text {
+            background-color: #fff;
+            text-align: left;
         }
         .input-container {
             display: flex;
@@ -79,8 +88,8 @@
             padding: 10px;
         }
         textarea {
-            flex-grow: 1;
-            margin: 0;
+            width: 80%;
+            margin: 0 10px;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
@@ -117,11 +126,12 @@
             const userMessage = document.createElement('div');
             userMessage.className = 'message user';
             const userIcon = document.createElement('img');
-            userIcon.src = 'images/user.png'; // Replace with the actual path to the user icon
+            userIcon.src = '/static/images/user.png'; // Set the path to the user icon
             userIcon.className = 'icon';
-            userMessage.appendChild(userIcon);
             const userText = document.createElement('div');
+            userText.className = 'text';
             userText.textContent = prompt;
+            userMessage.appendChild(userIcon);
             userMessage.appendChild(userText);
             chatBox.appendChild(userMessage);
 
@@ -132,11 +142,12 @@
             const botThinkingMessage = document.createElement('div');
             botThinkingMessage.className = 'message thinking';
             const botIconThinking = document.createElement('img');
-            botIconThinking.src = 'images/AI.png'; // Replace with the actual path to the bot icon
+            botIconThinking.src = '/static/images/AI.png'; // Set the path to the bot icon
             botIconThinking.className = 'icon';
-            botThinkingMessage.appendChild(botIconThinking);
             const botThinkingText = document.createElement('div');
+            botThinkingText.className = 'text';
             botThinkingText.textContent = 'CodeLlama is thinking...';
+            botThinkingMessage.appendChild(botIconThinking);
             botThinkingMessage.appendChild(botThinkingText);
             chatBox.appendChild(botThinkingMessage);
 
@@ -162,11 +173,12 @@
                 const botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
                 const botIcon = document.createElement('img');
-                botIcon.src = 'path/to/bot-icon.png'; // Replace with the actual path to the bot icon
+                botIcon.src = '/static/images/AI.png'; // Set the path to the bot icon
                 botIcon.className = 'icon';
-                botMessage.appendChild(botIcon);
                 const botText = document.createElement('div');
+                botText.className = 'text';
                 botText.textContent = data.response;
+                botMessage.appendChild(botIcon);
                 botMessage.appendChild(botText);
                 chatBox.appendChild(botMessage);
 
