@@ -2,13 +2,15 @@ from typing import Dict, List
 
 class PromptBuilder:
     context: List[Dict[str, str]]
+    context_window: int
 
-    def __init__(self):
+    def __init__(self, context_window: int = 3):
         self.context = []
+        self.context_window = context_window
 
     def build_instruction(self, prompt: str) -> List[List[Dict[str, str]]]:
         context_str = "".join(
-            f"user: {interaction['user']}\nassistant: {interaction['assistant']}\n"
+            f"user: {interaction['user']} assistant: {interaction['assistant']} "
             for interaction in self.context
         )
 
@@ -31,6 +33,6 @@ class PromptBuilder:
         return instructions
 
     def save_context(self, interaction: Dict[str, str]) -> None:
-        if len(self.context) >= 3:
+        if len(self.context) >= self.context_window:
             self.context.pop(0)
         self.context.append(interaction)
