@@ -6,31 +6,6 @@ import time
 import threading
 
 
-def add_context(
-        new_instruction: Dict[str, str],
-        past_interactions: List[Dict[str, str]],
-        context_length: int = 5
-) -> List[Dict[str, str]]:
-    """
-    Add context to the new instruction from past interactions.
-
-    Args:
-    - new_instruction (Dict[str, str]): The new instruction to be processed.
-    - past_interactions (List[Dict[str, str]]): The list of past interactions.
-    - context_length (int): The number of past interactions to include as context.
-
-    Returns:
-    - List[Dict[str, str]]: The updated instructions with context.
-    """
-    past_interactions.append(new_instruction)
-
-    # Limit the number of interactions to the context length
-    if len(past_interactions) > context_length:
-        past_interactions = past_interactions[-context_length:]
-
-    return past_interactions
-
-
 def main(
         ckpt_dir: str = 'codellama/CodeLlama-7b-Instruct/',
         tokenizer_path: str = 'codellama/CodeLlama-7b-Instruct/tokenizer.model',
@@ -54,21 +29,23 @@ def main(
             print(f"\r> CodeLlama is thinking... {elapsed_time:.0f}s", end="")
             time.sleep(1)
 
-    # List to hold past interactions
-    past_interactions = []
-
     while True:
         prompt = input(f"> User({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): ")
 
-        # Add the new prompt to past interactions
-        new_instruction = {
-            "role": "user",
-            "content": prompt,
-        }
-        past_interactions = add_context(new_instruction, past_interactions)
-
-        # Prepare instructions with context
-        instructions = [past_interactions]
+        instructions = [
+        [
+            {
+                "role": "system",
+                "content": "There are some historical interactions between you and user, use them as context to answer the following questions. "
+                + "user: my name is dehao"
+                + "assistant: hello",
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+    ]
 
         print("CodeLlama is thinking...", end="")
 
@@ -91,11 +68,6 @@ def main(
         print()  # Print newline to end the thinking time display
 
         for result in results:
-            assistant_reply = {
-                "role": "assistant",
-                "content": result['generation']['content']
-            }
-            past_interactions = add_context(assistant_reply, past_interactions)
             print(
                 f"> CodeLlama({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): {result['generation']['content']}")
             print("\n=============================================================\n")
