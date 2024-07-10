@@ -3,4 +3,11 @@ fairscale
 fire
 sentencepiece
 langchain
+langchain-community
 flask
+unstructured
+unstructured[pdf]
+langchain-cli
+sentence-transformers
+langchain_huggingface
+chromadb
