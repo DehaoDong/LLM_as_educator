@@ -1,12 +1,34 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
-
-from typing import Optional
+from typing import Optional, List, Dict
 import fire
 from codellama.llama import Llama
 import datetime
 import time
 import threading
+
+
+def add_context(
+        new_instruction: Dict[str, str],
+        past_interactions: List[Dict[str, str]],
+        context_length: int = 5
+) -> List[Dict[str, str]]:
+    """
+    Add context to the new instruction from past interactions.
+
+    Args:
+    - new_instruction (Dict[str, str]): The new instruction to be processed.
+    - past_interactions (List[Dict[str, str]]): The list of past interactions.
+    - context_length (int): The number of past interactions to include as context.
+
+    Returns:
+    - List[Dict[str, str]]: The updated instructions with context.
+    """
+    past_interactions.append(new_instruction)
+
+    # Limit the number of interactions to the context length
+    if len(past_interactions) > context_length:
+        past_interactions = past_interactions[-context_length:]
+
+    return past_interactions
 
 
 def main(
@@ -32,16 +54,21 @@ def main(
             print(f"\r> CodeLlama is thinking... {elapsed_time:.0f}s", end="")
             time.sleep(1)
 
+    # List to hold past interactions
+    past_interactions = []
+
     while True:
         prompt = input(f"> User({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): ")
-        instructions = [
-            [
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-        ]
+
+        # Add the new prompt to past interactions
+        new_instruction = {
+            "role": "user",
+            "content": prompt,
+        }
+        past_interactions = add_context(new_instruction, past_interactions)
+
+        # Prepare instructions with context
+        instructions = [past_interactions]
 
         print("CodeLlama is thinking...", end="")
 
@@ -49,6 +76,8 @@ def main(
         stop_thread = threading.Event()
         thinking_thread = threading.Thread(target=display_thinking_time, args=(start_time,))
         thinking_thread.start()
+
+        print(instructions)
 
         results = generator.chat_completion(
             instructions,  # type: ignore
@@ -62,6 +91,11 @@ def main(
         print()  # Print newline to end the thinking time display
 
         for result in results:
+            assistant_reply = {
+                "role": "assistant",
+                "content": result['generation']['content']
+            }
+            past_interactions = add_context(assistant_reply, past_interactions)
             print(
                 f"> CodeLlama({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}): {result['generation']['content']}")
             print("\n=============================================================\n")

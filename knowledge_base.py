@@ -9,7 +9,7 @@ from langchain.prompts import PromptTemplate
 def load_documents(directory="documents"):
     loader = DirectoryLoader(directory)
     documents = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=256, chunk_overlap=0)
+    text_splitter = CharacterTextSplitter(chunk_size=512, chunk_overlap=128)
     split_documents = text_splitter.split_documents(documents)
 
     return split_documents
