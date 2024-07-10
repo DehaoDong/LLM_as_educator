@@ -69,7 +69,7 @@
         }
         .message.user .text {
             background-color: #e0e0e0;
-            text-align: right;
+            text-align: left;
         }
         .message.bot .text {
             background-color: #fff;
@@ -141,8 +141,7 @@
         }
 
         function scrollToBottom() {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
         async function generateResponse() {
@@ -162,6 +161,7 @@
             userMessage.appendChild(userIcon);
             userMessage.appendChild(userText);
             chatBox.appendChild(userMessage);
+            scrollToBottom();
 
             // Clear the prompt input
             document.getElementById('prompt').value = '';
@@ -178,8 +178,7 @@
             botThinkingMessage.appendChild(botIconThinking);
             botThinkingMessage.appendChild(botThinkingText);
             chatBox.appendChild(botThinkingMessage);
-
-            scrollToBottom(); // Scroll to the bottom after adding user message and thinking message
+            scrollToBottom();
 
             const startTime = Date.now();
             const interval = setInterval(() => {
@@ -211,14 +210,16 @@
                 botMessage.appendChild(botIcon);
                 botMessage.appendChild(botText);
                 chatBox.appendChild(botMessage);
+                scrollToBottom();
 
                 // Remove thinking message
                 chatBox.removeChild(botThinkingMessage);
+                scrollToBottom();
 
-                scrollToBottom(); // Scroll to the bottom after adding bot response
             } catch (error) {
                 clearInterval(interval);
                 botThinkingText.textContent = 'Error: Could not generate response.';
+                scrollToBottom();
             }
         }
     </script>

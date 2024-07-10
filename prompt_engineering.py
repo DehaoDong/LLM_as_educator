@@ -4,13 +4,14 @@ class PromptBuilder:
     context: List[Dict[str, str]]
     context_window: int
 
-    def __init__(self, context_window: int = 3):
+    def __init__(self, context_window: int = 2):
         self.context = []
         self.context_window = context_window
 
     def build_instruction(self, prompt: str) -> List[List[Dict[str, str]]]:
         context_str = "".join(
-            f"user: {interaction['user']} assistant: {interaction['assistant']} "
+            # f"user: {interaction['user']} assistant: {interaction['assistant']} "
+            interaction['user']
             for interaction in self.context
         )
 
@@ -18,7 +19,7 @@ class PromptBuilder:
             [
                 {
                     "role": "system",
-                    "content": "Below are some historical interactions between you and user, use them as context to answer the following question. "
+                    "content": "Below are some historical messages, use them as context."
                                + context_str,
                 },
                 {
