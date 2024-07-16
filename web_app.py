@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from codellama_langchain import CodeLlama, ModelHandler
+from model import CodeLlama, ModelHandler
 
 # Initialize Flask application
 app = Flask(__name__)
