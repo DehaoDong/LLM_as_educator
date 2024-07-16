@@ -5,17 +5,8 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-
 from model import CodeLlama, ModelHandler
 
-
-def load_documents(directory="documents"):
-    loader = DirectoryLoader(directory)
-    documents = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=512, chunk_overlap=128)
-    split_documents = text_splitter.split_documents(documents)
-
-    return split_documents
 
 def load_embedding_model(model_name="sentence-transformers/all-MiniLM-L6-v2"):
     encode_kwargs = {"normalize_embeddings": False}
@@ -26,41 +17,29 @@ def load_embedding_model(model_name="sentence-transformers/all-MiniLM-L6-v2"):
         encode_kwargs=encode_kwargs
     )
 
-def store_chroma(docs, embeddings, persist_directory="VectorStore"):
+embeddings = load_embedding_model()
+
+def load_documents(directory="documents"):
+    loader = DirectoryLoader(directory)
+    documents = loader.load()
+    text_splitter = CharacterTextSplitter(chunk_size=256, chunk_overlap=128, separator=r'\n| ', is_separator_regex=True)
+    split_documents = text_splitter.split_documents(documents)
+
+    # print(split_documents)
+
+    return split_documents
+
+def store_chroma(docs, persist_directory="VectorStore"):
     db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
     db.persist()
     return db
 
-
-embeddings = load_embedding_model()
-
-if not os.path.exists('VectorStore'):
+def build_knowledge_base():
+    print('Building knowledge base...')
     documents = load_documents()
-    db = store_chroma(documents, embeddings)
-else:
+    store_chroma(documents)
+
+def get_knowledge_base_retriever():
     db = Chroma(persist_directory='VectorStore', embedding_function=embeddings)
-
-QA_CHAIN_PROMPT = PromptTemplate.from_template("""User:
-Answer the question based on the following <context>.
-If you don't know the answer, just say you don't know and don't try to make up an answer.
-Keep your answer concise, with a maximum of 3 sentences.
-Always end your answer by saying "Thank you for your question!"
-{context}
-question：{question}
-Assistant:
-""")
-
-retriever = db.as_retriever()
-
-llm = CodeLlama(model_handler=ModelHandler(model='CodeLlama-7b-Instruct'))
-
-qa = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=retriever,
-    verbose=True,
-    chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
-)
-
-response = qa.run('what is the email address of Dehao Dong?')
-
-print(response)
+    retriever = db.as_retriever()
+    return retriever

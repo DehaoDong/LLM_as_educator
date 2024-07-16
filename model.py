@@ -1,6 +1,5 @@
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Mapping, Optional, Dict
 from langchain.llms.base import LLM
-import prompt_engineering
 from codellama.llama import Llama
 
 
@@ -9,7 +8,7 @@ class ModelHandler:
                  model='CodeLlama-7b-Instruct',
                  temperature=0.2,
                  top_p=0.95,
-                 max_seq_len=512,
+                 max_seq_len=1024,
                  max_batch_size=8,
                  max_gen_len=None):
         self.model = model
@@ -29,8 +28,22 @@ class ModelHandler:
             max_batch_size=self.max_batch_size,
         )
 
+    def build_instruction(slef, prompt: str) -> List[List[Dict[str, str]]]:
+        instructions = [
+            [
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+        ]
+
+        return instructions
+
     def generate(self, prompt):
-        instructions = prompt_engineering.build_instruction(prompt)
+        instructions = self.build_instruction(prompt)
+
+        print(instructions)
 
         results = self.generator.chat_completion(
             instructions,

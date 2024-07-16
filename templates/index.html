@@ -111,6 +111,47 @@
         code {
             font-family: monospace;
         }
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            font-size: 100px;
+            opacity: 0;
+            right: 0;
+            top: 0;
+            cursor: pointer;
+        }
+        .file-upload-button img {
+            width: 32px; /* Adjust size as needed */
+            height: 32px;
+            cursor: pointer;
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 2s linear infinite;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
     </style>
 </head>
 <body>
@@ -119,8 +160,16 @@
         <div id="chat-box"></div>
         <div class="input-container">
             <textarea id="prompt" rows="3" onkeydown="handleKeyDown(event)"></textarea>
+            <div class="file-upload-wrapper">
+                <label class="file-upload-button" for="file-upload">
+                    <img src="/static/images/upload.png" alt="Upload"> <!-- Use your image path here -->
+                </label>
+                <input type="file" id="file-upload" accept=".pdf,.txt,.doc,.docx" multiple onchange="uploadDocument()">
+            </div>
+            <div class="loader" id="loader"></div>
         </div>
     </div>
+    <div class="overlay" id="overlay"></div>
 
     <script>
         function handleKeyDown(event) {
@@ -131,12 +180,8 @@
         }
 
         function formatText(text) {
-            // Replace newline characters with <br> tags
             let formattedText = text.replace(/\n/g, '<br>');
-
-            // Replace ``` blocks with <pre><code> blocks
             formattedText = formattedText.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>');
-
             return formattedText;
         }
 
@@ -149,11 +194,10 @@
             const chatBox = document.getElementById('chat-box');
             if (!prompt) return;
 
-            // Append user message
             const userMessage = document.createElement('div');
             userMessage.className = 'message user';
             const userIcon = document.createElement('img');
-            userIcon.src = '/static/images/user.png'; // Set the path to the user icon
+            userIcon.src = '/static/images/user.png';
             userIcon.className = 'icon';
             const userText = document.createElement('div');
             userText.className = 'text';
@@ -163,14 +207,12 @@
             chatBox.appendChild(userMessage);
             scrollToBottom();
 
-            // Clear the prompt input
             document.getElementById('prompt').value = '';
 
-            // Append bot thinking message
             const botThinkingMessage = document.createElement('div');
             botThinkingMessage.className = 'message thinking';
             const botIconThinking = document.createElement('img');
-            botIconThinking.src = '/static/images/AI.png'; // Set the path to the bot icon
+            botIconThinking.src = '/static/images/AI.png';
             botIconThinking.className = 'icon';
             const botThinkingText = document.createElement('div');
             botThinkingText.className = 'text';
@@ -198,11 +240,10 @@
                 const data = await response.json();
                 clearInterval(interval);
 
-                // Append bot response message
                 const botMessage = document.createElement('div');
                 botMessage.className = 'message bot';
                 const botIcon = document.createElement('img');
-                botIcon.src = '/static/images/AI.png'; // Set the path to the bot icon
+                botIcon.src = '/static/images/AI.png';
                 botIcon.className = 'icon';
                 const botText = document.createElement('div');
                 botText.className = 'text';
@@ -212,7 +253,6 @@
                 chatBox.appendChild(botMessage);
                 scrollToBottom();
 
-                // Remove thinking message
                 chatBox.removeChild(botThinkingMessage);
                 scrollToBottom();
 
@@ -220,6 +260,49 @@
                 clearInterval(interval);
                 botThinkingText.textContent = 'Error: Could not generate response.';
                 scrollToBottom();
+            }
+        }
+
+        async function uploadDocument() {
+            const fileInput = document.getElementById('file-upload');
+            const files = fileInput.files;
+            if (files.length === 0) return;
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('documents', files[i]);
+            }
+
+            const overlay = document.getElementById('overlay');
+            const loader = document.getElementById('loader');
+            const uploadButton = document.querySelector('.file-upload-wrapper');
+
+            // Show loading animation
+            overlay.style.display = 'block';
+            loader.style.display = 'block';
+            uploadButton.style.display = 'none'; // Hide upload button
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Hide loading animation
+                overlay.style.display = 'none';
+                loader.style.display = 'none';
+                uploadButton.style.display = 'inline-block'; // Show upload button again
+
+                alert(data.message);
+            } catch (error) {
+                // Hide loading animation
+                overlay.style.display = 'none';
+                loader.style.display = 'none';
+                uploadButton.style.display = 'inline-block'; // Show upload button again
+
+                alert('Error: Could not upload document.');
             }
         }
     </script>
