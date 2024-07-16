@@ -6,6 +6,9 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
+from model import CodeLlama, ModelHandler
+
+
 def load_documents(directory="documents"):
     loader = DirectoryLoader(directory)
     documents = loader.load()
@@ -49,3 +52,13 @@ Assistant:
 
 retriever = db.as_retriever()
 
+llm = CodeLlama(model_handler=ModelHandler(model='CodeLlama-7b-Instruct'))
+
+qa = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=retriever,
+    verbose=True,
+    chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
+)
+
+qa.run('what is the email address of Dehao Dong?')
