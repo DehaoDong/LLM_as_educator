@@ -61,4 +61,6 @@ qa = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
 )
 
-qa.run('what is the email address of Dehao Dong?')
+response = qa.run('what is the email address of Dehao Dong?')
+
+print(response)

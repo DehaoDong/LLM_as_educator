@@ -39,8 +39,6 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-from model import CodeLlama, ModelHandler
-
 
 def load_documents(directory="documents"):
     loader = DirectoryLoader(directory)
@@ -73,14 +71,12 @@ if not os.path.exists('VectorStore'):
 else:
     db = Chroma(persist_directory='VectorStore', embedding_function=embeddings)
 
-QA_CHAIN_PROMPT = PromptTemplate.from_template("""User:
-Answer the question based on the following <context>.
+QA_CHAIN_PROMPT = PromptTemplate.from_template("""Answer the question based on the following <context>.
 If you don't know the answer, just say you don't know and don't try to make up an answer.
 Keep your answer concise, with a maximum of 3 sentences.
 Always end your answer by saying "Thank you for your question!"
 {context}
 question：{question}
-Assistant:
 """)
 
 retriever = db.as_retriever()
@@ -92,4 +88,5 @@ qa = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
 )
 
-qa.run('what is the email address of Dehao Dong?')
+response = qa.run('what is the email address of Dehao Dong?')
+print('\n\n'+response)
