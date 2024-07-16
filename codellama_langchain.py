@@ -1,7 +1,5 @@
 from typing import Any, List, Mapping, Optional
-from langchain.callbacks.manager import CallbackManagerForLLMRun
 from langchain.llms.base import LLM
-
 import prompt_engineering
 from codellama.llama import Llama
 
