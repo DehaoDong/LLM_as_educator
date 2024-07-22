@@ -99,7 +99,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            align-self: flex-start;
+            align-self: center; /* Center the button */
         }
         #save-button:hover {
             background-color: #0056b3;
@@ -131,6 +131,16 @@
                 displayHistory(data);
             } catch (error) {
                 console.error('Error fetching history:', error);
+            }
+        }
+
+        async function fetchFineTuneDataset() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/fine-tune-dataset');
+                const data = await response.json();
+                displayFineTuneDataset(data);
+            } catch (error) {
+                console.error('Error fetching fine-tune dataset:', error);
             }
         }
 
@@ -255,9 +265,9 @@
 
         function saveFineTune() {
             const fineTuneData = fineTuneItems.map(item => {
-                const prompt = item.querySelector('.fine-tune-message.user .content').textContent;
-                const response = item.querySelector('.fine-tune-message.assistant .content').value;
-                return { prompt, response };
+                const user = item.querySelector('.fine-tune-message.user .content').textContent;
+                const assistant = item.querySelector('.fine-tune-message.assistant .content').value;
+                return { user, assistant };
             });
 
             fetch('http://127.0.0.1:5000/save-finetune', {
@@ -272,11 +282,41 @@
                 alert(data.message);
                 document.getElementById('fine-tune-items').innerHTML = '';
                 fineTuneItems = [];
+                fetchFineTuneDataset(); // Reload the dataset
             })
             .catch(error => console.error('Error saving fine-tune data:', error));
         }
 
-        window.onload = fetchHistory;
+        function displayFineTuneDataset(fineTuneDataset) {
+            const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+            fineTuneItemsContainer.innerHTML = ''; // Clear previous content
+
+            fineTuneDataset.forEach(item => {
+                const fineTuneItem = document.createElement('div');
+                fineTuneItem.className = 'fine-tune-item';
+
+                const userElement = createFineTuneMessageElement({ role: 'user', content: item.user }, true);
+                const assistantElement = createFineTuneMessageElement({ role: 'assistant', content: item.assistant }, false);
+
+                fineTuneItem.appendChild(userElement);
+                fineTuneItem.appendChild(assistantElement);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
+                fineTuneItem.appendChild(deleteButton);
+
+                fineTuneItemsContainer.appendChild(fineTuneItem);
+                fineTuneItems.push(fineTuneItem);
+
+                adjustTextareaHeight(assistantElement.querySelector('textarea'));
+            });
+        }
+
+        window.onload = () => {
+            fetchHistory();
+            fetchFineTuneDataset();
+        };
     </script>
 </body>
 </html>

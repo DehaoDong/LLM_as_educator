@@ -1,5 +1,4 @@
 import json
-
 import torch
 from flask import Flask, request, jsonify, render_template
 from model import CodeLlama
@@ -15,14 +14,13 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = 'documents'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
+app.config['FINE_TUNE_DATASET'] = 'fine_tuning/fine_tune_dataset.json'
 
-llm = CodeLlama(pipeline = pipeline(task="text-generation",
-                                model="meta-llama/CodeLlama-7b-Instruct-hf",
-                                max_new_tokens=512,
-                                device_map="auto",
-                                # batch_size=8,
-                                torch_dtype=torch.bfloat16,))
-
+llm = CodeLlama(pipeline=pipeline(task="text-generation",
+                                  model="meta-llama/CodeLlama-7b-Instruct-hf",
+                                  max_new_tokens=512,
+                                  device_map="auto",
+                                  torch_dtype=torch.bfloat16))
 
 # Define the Flask route for processing prompts
 @app.route('/generate', methods=['POST'])
@@ -41,12 +39,7 @@ def generate():
         chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
     )
 
-    # print(f'qa: {qa}')
-
     response = qa.invoke(prompt)  # Use the LLM instance directly as a callable
-
-    # print(f'response: {response}')
-
     response_content = response['result']
 
     web_response = {
@@ -90,6 +83,24 @@ def get_history():
         return jsonify(history)
     else:
         return jsonify([])
+
+
+@app.route('/fine-tune-dataset', methods=['GET'])
+def get_fine_tune_dataset():
+    if os.path.exists(app.config['FINE_TUNE_DATASET']):
+        with open(app.config['FINE_TUNE_DATASET'], 'r') as f:
+            fine_tune_dataset = json.load(f)
+        return jsonify(fine_tune_dataset)
+    else:
+        return jsonify([])
+
+
+@app.route('/save-finetune', methods=['POST'])
+def save_fine_tune():
+    fine_tune_data = request.get_json()
+    with open(app.config['FINE_TUNE_DATASET'], 'w') as f:
+        json.dump(fine_tune_data, f, indent=2)
+    return jsonify({"message": "Fine-tuning data saved successfully."})
 
 
 # Serve the frontend
