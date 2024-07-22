@@ -1,6 +1,0 @@
-torch
-fairscale
-fire
-sentencepiece
-
-langchain

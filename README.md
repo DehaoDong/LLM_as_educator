@@ -1,3 +1,8 @@
 # LLM_as_educator
 
-torchrun --nproc_per_node 1 web_app.py
+pip install -r requirements.txt
+
+huggingface-cli login
+
+python web_app.py
+

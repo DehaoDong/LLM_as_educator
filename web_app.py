@@ -1,6 +1,6 @@
 import torch
 from flask import Flask, request, jsonify, render_template
-from model import CodeLlama, ModelHandler
+from model import CodeLlama
 import knowledge_base as kb
 from langchain.chains import RetrievalQA
 import prompt_engineering as pe
@@ -19,9 +19,7 @@ llm = CodeLlama(pipeline = pipeline(task="text-generation",
                                 max_new_tokens=512,
                                 device_map="auto",
                                 # batch_size=8,
-                                torch_dtype=torch.bfloat16,
-                                )
-                )
+                                torch_dtype=torch.bfloat16,))
 
 
 # Define the Flask route for processing prompts
@@ -43,7 +41,7 @@ def generate():
 
     response = qa.invoke(prompt)  # Use the LLM instance directly as a callable
 
-    print(response)
+    # print(response)
 
     response = {
         "response": response['result'],

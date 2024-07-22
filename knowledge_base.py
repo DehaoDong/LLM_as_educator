@@ -5,7 +5,7 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from model import CodeLlama, ModelHandler
+from model import CodeLlama
 
 
 def load_embedding_model(model_name="sentence-transformers/all-MiniLM-L6-v2"):
