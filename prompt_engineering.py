@@ -1,17 +1,16 @@
 from langchain.prompts import PromptTemplate
 
 
-QA_CHAIN_PROMPT = PromptTemplate.from_template("""
-Some context that might be helpful will be provided in <context>.
-If you find the context helpful, answer the question based on the context. If not, ignore the context.
-If you don't know the answer, just say you don't know and don't try to make up an answer.
-Keep your answer concise, with a maximum of 5 sentences.
+QA_PROMPT_TEMPLATE = PromptTemplate.from_template("""
+<SYS>
+Some context that might be helpful will be provided below after 'context:'.
+If you find the context helpful or relevant, answer the question based on the context. If not, ignore the context.
+If you don't know the answer, just say you don't know and don't try to make up answers.
 context: {context}
-question: {question}
+</SYS>
+<USR>
+{question}
+</USR>
 """)
 
 
-SYSTEM_PROMPT = """
-You are a professional educator of computer science, your task is to answer the following question to help students
- understand the related knowledge.
-"""

@@ -36,18 +36,22 @@ def generate():
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever,
-        chain_type_kwargs={"prompt": pe.QA_CHAIN_PROMPT}
+        chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
     )
+
+    # print(f'qa: {qa}')
 
     response = qa.invoke(prompt)  # Use the LLM instance directly as a callable
 
-    # print(response)
+    # print(f'response: {response}')
 
-    response = {
-        "response": response['result'],
+    response_content = response['result']
+
+    web_response = {
+        "response": response_content,
     }
 
-    return jsonify(response)
+    return jsonify(web_response)
 
 
 def allowed_file(filename):

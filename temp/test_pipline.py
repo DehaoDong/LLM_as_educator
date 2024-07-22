@@ -4,7 +4,8 @@ from transformers import pipeline
 
 
 messages = [
-    {"role": "user", "content": "Who are you?"},
+    {"role": "system", "content": "context: user: 'my name is dehao'"},
+    {"role": "user", "content": "hello"},
 ]
 
 pipe = pipeline("text-generation",
@@ -17,15 +18,5 @@ pipe = pipeline("text-generation",
 
 response = pipe(messages)
 
-response = response[0]['generated_text'][1]['content'].strip()
 
 print(response)
-
-# [
-#     {'generated_text':
-#         [
-#             {'role': 'user', 'content': 'Who are you?'},
-#             {'role': 'assistant', 'content': '  I am LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner. I am trained on a massive dataset of text from the internet and can generate human-like responses to a wide range of topics and questions. I can be used to create chatbots, virtual assistants, and other applications that require natural language understanding and generation capabilities.'}
-#         ]
-#     }
-# ]
