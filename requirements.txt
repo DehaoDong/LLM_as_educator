@@ -11,3 +11,6 @@ langchain-cli
 sentence-transformers
 langchain_huggingface
 chromadb
+
+datasets
+peft

@@ -11,3 +11,7 @@ question: {question}
 """)
 
 
+SYSTEM_PROMPT = """
+You are a professional educator of computer science, your task is to answer the following question to help students
+ understand the related knowledge.
+"""

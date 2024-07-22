@@ -1,6 +1,7 @@
 from typing import Any, List, Mapping, Optional, Dict
 from langchain.llms.base import LLM
 from codellama.llama import Llama
+import prompt_engineering as pe
 
 
 class ModelHandler:
@@ -31,6 +32,10 @@ class ModelHandler:
     def build_instruction(slef, prompt: str) -> List[List[Dict[str, str]]]:
         instructions = [
             [
+                {
+                    "role": "system",
+                    "content": pe.SYSTEM_PROMPT
+                },
                 {
                     "role": "user",
                     "content": prompt,
