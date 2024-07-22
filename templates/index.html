@@ -27,6 +27,9 @@
             top: 0;
             left: 0;
             z-index: 1000;
+            display: flex;
+            justify-content: space-between; /* To align items horizontally */
+            align-items: center;
         }
         #chat-container {
             width: 80%;
@@ -155,7 +158,12 @@
     </style>
 </head>
 <body>
-    <div id="header">Meta CodeLlama-7B-Instruct</div>
+    <div id="header">
+        Meta CodeLlama-7B-Instruct
+        <a href="history.html" target="_blank">
+            <img src="/static/images/history.png" alt="History" width="32" height="32">
+        </a>
+    </div>
     <div id="chat-container">
         <div id="chat-box"></div>
         <div class="input-container">
