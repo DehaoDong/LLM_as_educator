@@ -10,21 +10,27 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             background-color: #f9f9f9;
         }
-        #history-container {
-            width: 50%; /* Adjusted width to accommodate fine-tuning panel */
-            margin-top: 20px;
+        #history-container, #fine-tune-container {
+            margin: 20px;
             display: flex;
             flex-direction: column;
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: calc(50% - 40px); /* Subtracting margin */
+            height: calc(100vh - 40px); /* Subtracting margin */
+            overflow-y: auto;
         }
-        .conversation {
+        #history-container {
+            margin-right: 0; /* Remove right margin for the left container */
+        }
+        #fine-tune-container {
+            margin-left: 0; /* Remove left margin for the right container */
+        }
+        .conversation, .fine-tune-item {
             margin-bottom: 20px;
             padding: 10px;
             border: 1px solid #ccc;
@@ -37,81 +43,54 @@
             color: #888;
             margin-bottom: 5px;
         }
-        .message {
+        .message, .fine-tune-message {
             display: flex;
             flex-direction: column;
             margin: 10px 0;
         }
-        .message .role {
+        .message .role, .fine-tune-message .role {
             font-weight: bold;
             margin-bottom: 5px;
         }
-        .message .content {
+        .message .content, .fine-tune-message .content {
             background-color: #e0e0e0;
             padding: 10px;
             border-radius: 5px;
             white-space: pre-wrap;
         }
-        .message.user .content {
+        .message.user .content, .fine-tune-message.user .content {
             background-color: #d1e7dd;
         }
         .message.system .content {
             background-color: #e2e3e5;
         }
-        .message.assistant .content {
+        .message.assistant .content, .fine-tune-message.assistant .content {
             background-color: #f8d7da;
         }
         .fine-tune-button {
             position: absolute;
             right: 10px;
             top: 10px;
-            background: url('/static/images/upload.png') no-repeat center center;
+            background: url('/static/images/arrow_right.png') no-repeat center center;
             background-size: contain;
             border: none;
             width: 24px;
             height: 24px;
             cursor: pointer;
         }
-        #fine-tune-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100%;
-            width: 50%;
-            background-color: #fff;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-        #fine-tune-panel.open {
-            transform: translateX(0);
-        }
-        .fine-tune-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .fine-tune-header h2 {
-            margin: 0;
-        }
-        .close-button {
-            background: url('/static/images/AI.png') no-repeat center center;
+        .delete-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: url('/static/images/delete.png') no-repeat center center;
             background-size: contain;
             border: none;
             width: 24px;
             height: 24px;
             cursor: pointer;
         }
-        #fine-tune-prompt, #fine-tune-response {
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: none;
+        .fine-tune-message .content {
+            overflow: hidden; /* Remove scrollbars */
         }
         #save-button {
             padding: 10px;
@@ -120,26 +99,31 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            align-self: flex-start;
         }
         #save-button:hover {
             background-color: #0056b3;
         }
+        textarea {
+            resize: none; /* Prevent resizing */
+            overflow: hidden; /* Remove scrollbars */
+            height: auto; /* Expand to fit content */
+        }
     </style>
 </head>
 <body>
-    <div id="history-container"></div>
-
-    <div id="fine-tune-panel">
-        <div class="fine-tune-header">
-            <h2>Fine-Tune</h2>
-            <button class="close-button" onclick="closeFineTunePanel()"></button>
-        </div>
-        <textarea id="fine-tune-prompt" rows="4" readonly></textarea>
-        <textarea id="fine-tune-response" rows="6"></textarea>
-        <button id="save-button" onclick="saveFineTune()">Save</button>
+    <div id="history-container">
+        <h2>History</h2>
+    </div>
+    <div id="fine-tune-container">
+        <h2>Fine-tune</h2>
+        <div id="fine-tune-items"></div>
+        <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
     </div>
 
     <script>
+        let fineTuneItems = [];
+
         async function fetchHistory() {
             try {
                 const response = await fetch('http://127.0.0.1:5000/history');
@@ -152,6 +136,7 @@
 
         function displayHistory(history) {
             const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = '<h2>History</h2>'; // Clear previous content and add heading
             history.forEach(conversation => {
                 const conversationElement = document.createElement('div');
                 conversationElement.className = 'conversation';
@@ -180,7 +165,7 @@
 
                 const fineTuneButton = document.createElement('button');
                 fineTuneButton.className = 'fine-tune-button';
-                fineTuneButton.onclick = () => openFineTunePanel(userMessage.content, assistantMessage.content);
+                fineTuneButton.onclick = () => addToFineTunePanel(userMessage, assistantMessage);
                 conversationElement.appendChild(fineTuneButton);
 
                 historyContainer.appendChild(conversationElement);
@@ -205,24 +190,75 @@
             return messageElement;
         }
 
-        function openFineTunePanel(prompt, response) {
-            document.getElementById('fine-tune-prompt').value = prompt;
-            document.getElementById('fine-tune-response').value = response;
-            document.getElementById('fine-tune-panel').classList.add('open');
+        function addToFineTunePanel(userMessage, assistantMessage) {
+            if (!userMessage || !assistantMessage) return;
+
+            const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+
+            const fineTuneItem = document.createElement('div');
+            fineTuneItem.className = 'fine-tune-item';
+
+            const userElement = createFineTuneMessageElement(userMessage, true);
+            const assistantElement = createFineTuneMessageElement(assistantMessage, false);
+
+            fineTuneItem.appendChild(userElement);
+            fineTuneItem.appendChild(assistantElement);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
+            fineTuneItem.appendChild(deleteButton);
+
+            fineTuneItemsContainer.appendChild(fineTuneItem);
+            fineTuneItems.push(fineTuneItem);
+
+            adjustTextareaHeight(assistantElement.querySelector('textarea'));
         }
 
-        function closeFineTunePanel() {
-            document.getElementById('fine-tune-panel').classList.remove('open');
+        function createFineTuneMessageElement(message, readOnly) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'fine-tune-message ' + message.role;
+
+            const roleElement = document.createElement('div');
+            roleElement.className = 'role';
+            roleElement.textContent = message.role.charAt(0).toUpperCase() + message.role.slice(1);
+
+            const contentElement = document.createElement(readOnly ? 'div' : 'textarea');
+            contentElement.className = 'content';
+            if (readOnly) {
+                contentElement.textContent = message.content;
+            } else {
+                contentElement.value = message.content;
+                contentElement.style.resize = 'none'; /* Prevent resizing */
+                contentElement.style.overflow = 'hidden'; /* Remove scrollbars */
+                contentElement.style.height = 'auto'; /* Expand to fit content */
+                contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
+            }
+            contentElement.readOnly = readOnly;
+
+            messageElement.appendChild(roleElement);
+            messageElement.appendChild(contentElement);
+
+            return messageElement;
+        }
+
+        function adjustTextareaHeight(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function removeFromFineTunePanel(fineTuneItem) {
+            const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+            fineTuneItemsContainer.removeChild(fineTuneItem);
+            fineTuneItems = fineTuneItems.filter(item => item !== fineTuneItem);
         }
 
         function saveFineTune() {
-            const prompt = document.getElementById('fine-tune-prompt').value;
-            const response = document.getElementById('fine-tune-response').value;
-
-            const fineTuneData = {
-                prompt: prompt,
-                response: response
-            };
+            const fineTuneData = fineTuneItems.map(item => {
+                const prompt = item.querySelector('.fine-tune-message.user .content').textContent;
+                const response = item.querySelector('.fine-tune-message.assistant .content').value;
+                return { prompt, response };
+            });
 
             fetch('http://127.0.0.1:5000/save-finetune', {
                 method: 'POST',
@@ -234,7 +270,8 @@
             .then(res => res.json())
             .then(data => {
                 alert(data.message);
-                closeFineTunePanel();
+                document.getElementById('fine-tune-items').innerHTML = '';
+                fineTuneItems = [];
             })
             .catch(error => console.error('Error saving fine-tune data:', error));
         }
