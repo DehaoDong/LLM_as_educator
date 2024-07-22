@@ -1,7 +1,11 @@
+from http.client import responses
 from typing import Any, List, Mapping, Optional, Dict
 from langchain.llms.base import LLM
+
 from codellama.llama import Llama
 import prompt_engineering as pe
+from transformers import pipeline
+
 
 
 class ModelHandler:
@@ -65,17 +69,31 @@ class ModelHandler:
 
 
 class CodeLlama(LLM):
-    model_handler: ModelHandler
+    pipeline: Any
 
     @property
     def _llm_type(self) -> str:
-        return str(self.model_handler)
+        return str(self.pipeline)
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        response = self.model_handler.generate(prompt)
+        instructions = [
+            [
+                # {
+                #     "role": "system",
+                #     "content": pe.SYSTEM_PROMPT
+                # },
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+        ]
+        result = self.pipeline(instructions)
+        print(result)
+        response = result[0][0]['generated_text'][1]['content'].strip()
         return response
 
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
-        return {"model_handler": str(self.model_handler)}
+        return {"pipeline": self.pipeline}
 

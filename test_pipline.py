@@ -1,33 +1,31 @@
-from transformers import pipeline
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# Use a pipeline as a high-level helper
 import torch
+from transformers import pipeline
 
-# Ensure PyTorch is set to use mixed precision
-torch.cuda.set_device(0)
-torch.backends.cudnn.benchmark = True
-torch.backends.cudnn.deterministic = False
-torch.backends.cudnn.enabled = True
-
-# Load the model and tokenizer
-model_name = "meta-llama/CodeLlama-7b-Instruct-hf"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-# Create the pipeline
-pipe = pipeline(
-    task="text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    device=0  # Ensure this matches your GPU device
-)
 
 messages = [
     {"role": "user", "content": "Who are you?"},
 ]
 
-response = pipe(messages,
-                truncation=True,
-                max_length=512)
+pipe = pipeline("text-generation",
+                model="meta-llama/CodeLlama-7b-Instruct-hf",
+                max_new_tokens=512,
+                device_map="auto",
+                # batch_size=8,
+                torch_dtype=torch.bfloat16,
+                )
 
-# Print the result
-print(response[0]['generated_text'][1]['content'])
+response = pipe(messages)
+
+response = response[0]['generated_text'][1]['content'].strip()
+
+print(response)
+
+# [
+#     {'generated_text':
+#         [
+#             {'role': 'user', 'content': 'Who are you?'},
+#             {'role': 'assistant', 'content': '  I am LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner. I am trained on a massive dataset of text from the internet and can generate human-like responses to a wide range of topics and questions. I can be used to create chatbots, virtual assistants, and other applications that require natural language understanding and generation capabilities.'}
+#         ]
+#     }
+# ]

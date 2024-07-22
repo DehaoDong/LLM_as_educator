@@ -1,3 +1,4 @@
+import torch
 from flask import Flask, request, jsonify, render_template
 from model import CodeLlama, ModelHandler
 import knowledge_base as kb
@@ -5,6 +6,7 @@ from langchain.chains import RetrievalQA
 import prompt_engineering as pe
 from werkzeug.utils import secure_filename
 import os
+from transformers import pipeline
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -12,7 +14,14 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = 'documents'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
 
-llm = CodeLlama(model_handler=ModelHandler(model='CodeLlama-7b-Instruct'))
+llm = CodeLlama(pipeline = pipeline(task="text-generation",
+                                model="meta-llama/CodeLlama-7b-Instruct-hf",
+                                max_new_tokens=512,
+                                device_map="auto",
+                                # batch_size=8,
+                                torch_dtype=torch.bfloat16,
+                                )
+                )
 
 
 # Define the Flask route for processing prompts
