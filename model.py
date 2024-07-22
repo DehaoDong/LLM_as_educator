@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from traceback import print_exc
 from typing import Any, List, Mapping, Optional
 from langchain.llms.base import LLM
@@ -37,8 +38,12 @@ class CodeLlama(LLM):
             else:
                 history = []
 
-            # Append new result
-            history.append(result[0]['generated_text'])
+            # Append new result with current time
+            history_entry = {
+                'timestamp': datetime.now().isoformat(),
+                'generated_text': result[0]['generated_text']
+            }
+            history.append(history_entry)
 
             # Limit history to the most recent 20 entries
             if len(history) > HISTORY_LIMIT:
@@ -48,7 +53,7 @@ class CodeLlama(LLM):
             with open(HISTORY_FILE, 'w') as f:
                 json.dump(history, f, indent=2)
 
-            print(f'curent history: {len(history)}')
+            print(f'current history: {len(history)}')
 
         # Run the save_to_file function in a separate thread
         executor.submit(save_to_file, result)

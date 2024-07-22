@@ -1,3 +1,5 @@
+import json
+
 import torch
 from flask import Flask, request, jsonify, render_template
 from model import CodeLlama
@@ -79,10 +81,25 @@ def upload_file():
     return jsonify({"message": "Files uploaded and knowledge base updated successfully."})
 
 
+@app.route('/history', methods=['GET'])
+def get_history():
+    history_file = 'history/history.json'
+    if os.path.exists(history_file):
+        with open(history_file, 'r') as f:
+            history = json.load(f)
+        return jsonify(history)
+    else:
+        return jsonify([])
+
+
 # Serve the frontend
 @app.route('/')
-def serve_frontend():
+def serve_index():
     return render_template('index.html')
+
+@app.route('/monitor')
+def serve_monitor():
+    return render_template('monitor.html')
 
 
 # Start the Flask application
