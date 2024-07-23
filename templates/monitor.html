@@ -113,10 +113,10 @@
 </head>
 <body>
     <div id="history-container">
-        <h2>History</h2>
+        <h2>History (<span id="history-counter">0</span>)</h2>
     </div>
     <div id="fine-tune-container">
-        <h2>Fine-tune</h2>
+        <h2>Fine-tune (<span id="fine-tune-counter">0</span>)</h2>
         <div id="fine-tune-items"></div>
         <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
     </div>
@@ -146,7 +146,9 @@
 
         function displayHistory(history) {
             const historyContainer = document.getElementById('history-container');
-            historyContainer.innerHTML = '<h2>History</h2>'; // Clear previous content and add heading
+            const historyCounter = document.getElementById('history-counter');
+            historyCounter.textContent = history.length;
+
             history.forEach(conversation => {
                 const conversationElement = document.createElement('div');
                 conversationElement.className = 'conversation';
@@ -223,6 +225,7 @@
             fineTuneItems.push(fineTuneItem);
 
             adjustTextareaHeight(assistantElement.querySelector('textarea'));
+            updateFineTuneCounter();
         }
 
         function createFineTuneMessageElement(message, readOnly) {
@@ -261,6 +264,7 @@
             const fineTuneItemsContainer = document.getElementById('fine-tune-items');
             fineTuneItemsContainer.removeChild(fineTuneItem);
             fineTuneItems = fineTuneItems.filter(item => item !== fineTuneItem);
+            updateFineTuneCounter();
         }
 
         function saveFineTune() {
@@ -289,7 +293,9 @@
 
         function displayFineTuneDataset(fineTuneDataset) {
             const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+            const fineTuneCounter = document.getElementById('fine-tune-counter');
             fineTuneItemsContainer.innerHTML = ''; // Clear previous content
+            fineTuneItems = []; // Clear fineTuneItems array
 
             fineTuneDataset.forEach(item => {
                 const fineTuneItem = document.createElement('div');
@@ -311,6 +317,13 @@
 
                 adjustTextareaHeight(assistantElement.querySelector('textarea'));
             });
+
+            fineTuneCounter.textContent = fineTuneDataset.length;
+        }
+
+        function updateFineTuneCounter() {
+            const fineTuneCounter = document.getElementById('fine-tune-counter');
+            fineTuneCounter.textContent = fineTuneItems.length;
         }
 
         window.onload = () => {
