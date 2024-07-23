@@ -163,3 +163,5 @@ cython_debug/
 
 codellama/CodeLlama-7b-Instruct/
 codellama/CodeLlama-13b-Instruct/
+
+fine_tuning/fine_tuned_model/

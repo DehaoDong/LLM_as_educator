@@ -11,3 +11,4 @@ chromadb
 datasets
 peft
 transformers
+bitsandbytes

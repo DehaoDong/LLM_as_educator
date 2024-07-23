@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = 'documents'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
-app.config['FINE_TUNE_DATASET'] = 'fine_tuning/fine_tune_dataset.json'
+app.config['FINE_TUNE_DATASET'] = 'fine_tuning/datasets/fine_tune_dataset.json'
 
 llm = CodeLlama(pipeline=pipeline(task="text-generation",
                                   model="meta-llama/CodeLlama-7b-Instruct-hf",

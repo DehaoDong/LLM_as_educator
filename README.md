@@ -8,4 +8,3 @@
 
     python web_app.py
 
-\touch ~/.no_auto_tmux
