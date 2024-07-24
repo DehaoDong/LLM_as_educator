@@ -1,7 +1,8 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, Trainer, TrainingArguments
 from peft import LoraConfig, get_peft_model
-from datasets import load_dataset
+import json
 import torch
+import datasets
 
 def fine_tune(model_name):
     try:
@@ -49,17 +50,43 @@ def fine_tune(model_name):
         # Save the tokenizer
         tokenizer.save_pretrained(fine_tuned_model)
 
-        # Load dataset
-        dataset = load_dataset("json", data_files="fine_tuning/datasets/fine_tune_dataset.json")
+        # Load and process the JSON dataset
+        with open("fine_tuning/datasets/fine_tune_dataset.json") as f:
+            data = json.load(f)
+
+        inputs = []
+        outputs = []
+
+        for conversation in data:
+            prompt = "<s>"
+            for message in conversation[:-1]:  # Exclude the last message which is the assistant's response
+                role = message["role"]
+                content = message["content"].strip()
+                prompt += f"Source: {role}\n\n{content} <step> "
+
+            # Add the destination for the model's response
+            prompt += "Source: assistant\nDestination: user\n\n"
+
+            # The last message is the assistant's response
+            assistant_response = conversation[-1]["content"].strip()
+
+            inputs.append(prompt.strip())
+            outputs.append(assistant_response.strip())
+
+        print(f'inputs: {inputs}\n')
+        print(f'outputs: {outputs}\n')
 
         # Tokenize the dataset
-        def tokenize_function(examples):
-            inputs = tokenizer(examples["user"], truncation=True, padding="max_length", max_length=512)
-            outputs = tokenizer(examples["assistant"], truncation=True, padding="max_length", max_length=512)
-            inputs["labels"] = outputs["input_ids"]
-            return inputs
+        model_inputs = tokenizer(inputs, truncation=True, padding="max_length", max_length=512)
+        labels = tokenizer(outputs, truncation=True, padding="max_length", max_length=512)
+        model_inputs["labels"] = labels["input_ids"]
 
-        tokenized_datasets = dataset.map(tokenize_function, batched=True)
+        # print(f'model_inputs: {model_inputs}\n')
+
+        # Convert to dataset format
+        tokenized_dataset = datasets.Dataset.from_dict(model_inputs)
+
+        # print(f'tokenized_dataset: {tokenized_dataset}\n')
 
         # Training arguments
         training_args = TrainingArguments(
@@ -76,7 +103,7 @@ def fine_tune(model_name):
         trainer = Trainer(
             model=peft_model,
             args=training_args,
-            train_dataset=tokenized_datasets["train"],
+            train_dataset=tokenized_dataset,
         )
 
         # Train model
@@ -89,3 +116,10 @@ def fine_tune(model_name):
 
     except Exception as e:
         return False, str(e)
+
+
+# Example usage:
+if __name__ == "__main__":
+    model_name = "CodeLlama-7b-Instruct-hf"
+    success, message = fine_tune(model_name)
+    print(message)

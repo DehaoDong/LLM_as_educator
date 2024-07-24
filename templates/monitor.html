@@ -215,7 +215,7 @@
 
                 const fineTuneButton = document.createElement('button');
                 fineTuneButton.className = 'fine-tune-button';
-                fineTuneButton.onclick = () => addToFineTunePanel(userMessage, assistantMessage);
+                fineTuneButton.onclick = () => addToFineTunePanel(systemMessage, userMessage, assistantMessage);
                 conversationElement.appendChild(fineTuneButton);
 
                 historyContainer.appendChild(conversationElement);
@@ -240,8 +240,8 @@
             return messageElement;
         }
 
-        function addToFineTunePanel(userMessage, assistantMessage) {
-            if (!userMessage || !assistantMessage) return;
+        function addToFineTunePanel(systemMessage, userMessage, assistantMessage) {
+            if (!systemMessage || !userMessage || !assistantMessage) return;
 
             const fineTuneItemsContainer = document.getElementById('fine-tune-items');
 
@@ -249,9 +249,11 @@
             fineTuneItem.className = 'fine-tune-item';
 
             const userElement = createFineTuneMessageElement(userMessage, true);
+            const systemElement = createFineTuneMessageElement(systemMessage, true);
             const assistantElement = createFineTuneMessageElement(assistantMessage, false);
 
             fineTuneItem.appendChild(userElement);
+            fineTuneItem.appendChild(systemElement);
             fineTuneItem.appendChild(assistantElement);
 
             const deleteButton = document.createElement('button');
@@ -307,9 +309,14 @@
 
         async function saveFineTune() {
             const fineTuneData = fineTuneItems.map(item => {
+                const system = item.querySelector('.fine-tune-message.system .content').textContent;
                 const user = item.querySelector('.fine-tune-message.user .content').textContent;
                 const assistant = item.querySelector('.fine-tune-message.assistant .content').value;
-                return { user, assistant };
+                return [
+                    { role: 'system', content: system },
+                    { role: 'user', content: user },
+                    { role: 'assistant', content: assistant }
+                ];
             });
 
             const overlay = document.getElementById('overlay');
@@ -359,14 +366,20 @@
             fineTuneItemsContainer.innerHTML = ''; // Clear previous content
             fineTuneItems = []; // Clear fineTuneItems array
 
-            fineTuneDataset.forEach(item => {
+            fineTuneDataset.forEach(conversation => {
                 const fineTuneItem = document.createElement('div');
                 fineTuneItem.className = 'fine-tune-item';
 
-                const userElement = createFineTuneMessageElement({ role: 'user', content: item.user }, true);
-                const assistantElement = createFineTuneMessageElement({ role: 'assistant', content: item.assistant }, false);
+                const systemMessage = conversation.find(msg => msg.role === 'system');
+                const userMessage = conversation.find(msg => msg.role === 'user');
+                const assistantMessage = conversation.find(msg => msg.role === 'assistant');
+
+                const userElement = createFineTuneMessageElement(userMessage, true);
+                const systemElement = createFineTuneMessageElement(systemMessage, true);
+                const assistantElement = createFineTuneMessageElement(assistantMessage, false);
 
                 fineTuneItem.appendChild(userElement);
+                fineTuneItem.appendChild(systemElement);
                 fineTuneItem.appendChild(assistantElement);
 
                 const deleteButton = document.createElement('button');

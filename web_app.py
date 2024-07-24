@@ -1,6 +1,5 @@
 import torch
 from flask import Flask, request, jsonify, render_template
-
 from fine_tune import fine_tune
 from model import CodeLlama, get_model_pipeline
 import knowledge_base as kb
@@ -91,6 +90,20 @@ def get_fine_tune_dataset():
 @app.route('/save-finetune', methods=['POST'])
 def save_fine_tune():
     fine_tune_data = request.get_json()
+
+    # Validate the dataset
+    for conversation in fine_tune_data:
+        if not isinstance(conversation, list):
+            return jsonify({"error": "Invalid dataset format. Each conversation must be a list of messages."}), 400
+        for message in conversation:
+            if not isinstance(message, dict):
+                return jsonify({"error": "Invalid dataset format. Each message must be a dictionary."}), 400
+            if not all(key in message for key in ['role', 'content']):
+                return jsonify({"error": "Invalid dataset format. Each message must contain 'role' and 'content'."}), 400
+        if not any(message['role'] == 'assistant' for message in conversation):
+            return jsonify({"error": "Each conversation must include an 'assistant' message."}), 400
+
+    # Ensure the dataset aligns with the structure including system prompts
     with open(app.config['FINE_TUNE_DATASET'], 'w') as f:
         json.dump(fine_tune_data, f, indent=2)
 
