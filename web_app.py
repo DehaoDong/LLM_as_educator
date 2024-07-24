@@ -1,28 +1,26 @@
-import json
 import torch
 from flask import Flask, request, jsonify, render_template
-from model import CodeLlama
+
+from fine_tune import fine_tune
+from model import CodeLlama, get_model_pipeline
 import knowledge_base as kb
 from langchain.chains import RetrievalQA
 import prompt_engineering as pe
 from werkzeug.utils import secure_filename
 import os
-from transformers import pipeline
+import json
 
-# Initialize Flask application
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = 'documents'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
 app.config['FINE_TUNE_DATASET'] = 'fine_tuning/datasets/fine_tune_dataset.json'
 
-llm = CodeLlama(pipeline=pipeline(task="text-generation",
-                                  model="meta-llama/CodeLlama-7b-Instruct-hf",
-                                  max_new_tokens=512,
-                                  device_map="auto",
-                                  torch_dtype=torch.bfloat16))
+model = "CodeLlama-7b-Instruct-hf"
 
-# Define the Flask route for processing prompts
+ppl = get_model_pipeline(model)
+llm = CodeLlama(ppl=ppl)
+
 @app.route('/generate', methods=['POST'])
 def generate():
     data = request.get_json()
@@ -39,7 +37,7 @@ def generate():
         chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
     )
 
-    response = qa.invoke(prompt)  # Use the LLM instance directly as a callable
+    response = qa.invoke(prompt)
     response_content = response['result']
 
     web_response = {
@@ -48,10 +46,8 @@ def generate():
 
     return jsonify(web_response)
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -73,7 +69,6 @@ def upload_file():
 
     return jsonify({"message": "Files uploaded and knowledge base updated successfully."})
 
-
 @app.route('/history', methods=['GET'])
 def get_history():
     history_file = 'history/history.json'
@@ -84,7 +79,6 @@ def get_history():
     else:
         return jsonify([])
 
-
 @app.route('/fine-tune-dataset', methods=['GET'])
 def get_fine_tune_dataset():
     if os.path.exists(app.config['FINE_TUNE_DATASET']):
@@ -94,14 +88,29 @@ def get_fine_tune_dataset():
     else:
         return jsonify([])
 
-
 @app.route('/save-finetune', methods=['POST'])
 def save_fine_tune():
     fine_tune_data = request.get_json()
     with open(app.config['FINE_TUNE_DATASET'], 'w') as f:
         json.dump(fine_tune_data, f, indent=2)
-    return jsonify({"message": "Fine-tuning data saved successfully."})
 
+    # Trigger fine-tuning
+    success, message = fine_tune(model)
+    if success:
+        # reload model
+        global ppl, llm
+
+        del llm
+        del ppl
+
+        torch.cuda.empty_cache()
+
+        ppl = get_model_pipeline(model)
+        llm = CodeLlama(ppl=ppl)
+
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 500
 
 # Serve the frontend
 @app.route('/')
@@ -111,7 +120,6 @@ def serve_index():
 @app.route('/monitor')
 def serve_monitor():
     return render_template('monitor.html')
-
 
 # Start the Flask application
 if __name__ == '__main__':

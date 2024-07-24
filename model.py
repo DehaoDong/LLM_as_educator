@@ -1,8 +1,10 @@
 import json
 import os
 from datetime import datetime
-from traceback import print_exc
 from typing import Any, List, Mapping, Optional
+from peft import PeftModel
+from transformers import pipeline, BitsAndBytesConfig, AutoTokenizer, AutoModelForCausalLM
+import torch
 from langchain.llms.base import LLM
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,12 +13,60 @@ HISTORY_LIMIT = 20
 
 executor = ThreadPoolExecutor(max_workers=1)
 
+def get_model_pipeline(model):
+    model_id = f"meta-llama/{model}"
+    fine_tuned_model = f"fine_tuning/fine_tuned_model/{model}_QLoRA"
+
+    # if exists fine-tuned model return fine-tuned model, else return the base model
+    if not os.path.exists(fine_tuned_model):
+        ppl = pipeline(task="text-generation",
+                            model="meta-llama/CodeLlama-7b-Instruct-hf",
+                            max_new_tokens=512,
+                            device_map="auto",
+                            torch_dtype=torch.bfloat16)
+        return ppl
+    else:
+        # Define the quantization configuration
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type='nf4'
+        )
+
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(fine_tuned_model)
+
+        # Load model with quantization
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            low_cpu_mem_usage=True,
+            quantization_config=quantization_config,
+            torch_dtype=torch.float16,
+            device_map='auto'
+        )
+
+        model.resize_token_embeddings(len(tokenizer))
+
+        # Load fine-tuned model
+        model = PeftModel.from_pretrained(model, fine_tuned_model)
+
+        # Set up pipeline
+        ppl = pipeline(task="text-generation",
+                       model=model,
+                       tokenizer=tokenizer,
+                       max_new_tokens=512,
+                       device_map="auto",
+                       torch_dtype=torch.bfloat16)
+
+        return ppl
+
 class CodeLlama(LLM):
-    pipeline: Any
+    ppl: Any
 
     @property
     def _llm_type(self) -> str:
-        return str(self.pipeline)
+        return str(self.ppl)
 
     def __extract_answer(self, result):
         # Access the first item in the 'generated_text' list
@@ -72,7 +122,7 @@ class CodeLlama(LLM):
             {"role": "user", "content": user_prompt},
         ]
 
-        result = self.pipeline(instruction)
+        result = self.ppl(instruction)
         print(json.dumps(result, indent=2))
 
         self.__save_history(result)
@@ -82,5 +132,5 @@ class CodeLlama(LLM):
 
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
-        return {"pipeline": self.pipeline}
+        return {"pipeline": self.ppl}
 

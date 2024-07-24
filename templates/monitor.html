@@ -92,6 +92,13 @@
         .fine-tune-message .content {
             overflow: hidden; /* Remove scrollbars */
         }
+        #save-button-wrapper {
+            position: relative; /* To position the loader correctly */
+            align-self: center; /* Center the button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         #save-button {
             padding: 10px;
             background-color: #007bff;
@@ -99,15 +106,42 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            align-self: center; /* Center the button */
         }
-        #save-button:hover {
+        #save-button:disabled {
+            background-color: #999; /* Change color to indicate disabled state */
+            cursor: not-allowed; /* Change cursor to indicate disabled state */
+        }
+        #save-button:hover:enabled {
             background-color: #0056b3;
         }
         textarea {
             resize: none; /* Prevent resizing */
             overflow: hidden; /* Remove scrollbars */
             height: auto; /* Expand to fit content */
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none; /* Hidden by default */
         }
     </style>
 </head>
@@ -118,8 +152,12 @@
     <div id="fine-tune-container">
         <h2>Fine-tune (<span id="fine-tune-counter">0</span>)</h2>
         <div id="fine-tune-items"></div>
-        <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
+        <div id="save-button-wrapper">
+            <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
+            <div class="loader" id="loader"></div>
+        </div>
     </div>
+    <div class="overlay" id="overlay"></div>
 
     <script>
         let fineTuneItems = [];
@@ -267,28 +305,52 @@
             updateFineTuneCounter();
         }
 
-        function saveFineTune() {
+        async function saveFineTune() {
             const fineTuneData = fineTuneItems.map(item => {
                 const user = item.querySelector('.fine-tune-message.user .content').textContent;
                 const assistant = item.querySelector('.fine-tune-message.assistant .content').value;
                 return { user, assistant };
             });
 
-            fetch('http://127.0.0.1:5000/save-finetune', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(fineTuneData),
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                document.getElementById('fine-tune-items').innerHTML = '';
-                fineTuneItems = [];
-                fetchFineTuneDataset(); // Reload the dataset
-            })
-            .catch(error => console.error('Error saving fine-tune data:', error));
+            const overlay = document.getElementById('overlay');
+            const loader = document.getElementById('loader');
+            const saveButton = document.getElementById('save-button');
+
+            // Show loading animation
+            overlay.style.display = 'block';
+            loader.style.display = 'block';
+            saveButton.style.display = 'none'; // Hide save button
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/save-finetune', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(fineTuneData),
+                });
+
+                const data = await response.json();
+
+                // Hide loading animation
+                overlay.style.display = 'none';
+                loader.style.display = 'none';
+                saveButton.style.display = 'block'; // Show save button again
+
+                alert(data.message || data.error);
+                if (data.message) {
+                    document.getElementById('fine-tune-items').innerHTML = '';
+                    fineTuneItems = [];
+                    fetchFineTuneDataset(); // Reload the dataset
+                }
+            } catch (error) {
+                // Hide loading animation
+                overlay.style.display = 'none';
+                loader.style.display = 'none';
+                saveButton.style.display = 'block'; // Show save button again
+
+                alert('Error: Could not save fine-tune data.');
+            }
         }
 
         function displayFineTuneDataset(fineTuneDataset) {
