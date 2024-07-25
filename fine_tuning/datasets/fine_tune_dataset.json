@@ -40,5 +40,33 @@
       "role": "assistant",
       "content": "I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
     }
+  ],
+  [
+    {
+      "role": "system",
+      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nMake sure the context you got is relevant to the question. If so, answer the question based on the context, If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nLPWAN\\n| =\\n| Low\\n| Power\\n| Wide\\n| Area\\n| Networks\\n| \u25cf\\n| BOM\\n| =\\n| Bill\\n| of\\n| Materials\\n| \u25cf\\n| MAC\\n| =\\n| Media\\n| Access\\n| Control\\n| \u25cf\\n| LoRa\\n| =\\n| Long\\n| Range\\n| \u25cf\\n| RPMA\\n| =\\n| Random\\n| Phase\\n| Multiple\\n| Access\\n| \u25cf\\n| ETSI\n\nLPWAN\\n| =\\n| Low\\n| Power\\n| Wide\\n| Area\\n| Networks\\n| \u25cf\\n| BOM\\n| =\\n| Bill\\n| of\\n| Materials\\n| \u25cf\\n| MAC\\n| =\\n| Media\\n| Access\\n| Control\\n| \u25cf\\n| LoRa\\n| =\\n| Long\\n| Range\\n| \u25cf\\n| RPMA\\n| =\\n| Random\\n| Phase\\n| Multiple\\n| Access\\n| \u25cf\\n| ETSI"
+    },
+    {
+      "role": "user",
+      "content": "tell me who Xinyi Li is"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
+    }
+  ],
+  [
+    {
+      "role": "system",
+      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nMake sure the context you got is relevant to the question. If so, answer the question based on the context, If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nself-similar\\n| structure\\n| contains\\n| smaller\\n| replicas\\n| of\\n| itself\\n| at\\n| all\\n| scales\\n| \u25cf\\n| Contrast\\n| with\\n| Poisson\\n| traffic,\\n| where\\n| clustering\\n| occurs\\n| in\\n| the\\n| short\\n| term\\n| but\\n| traffic\\n| smoothes\\n| out\\n| over\n\nphenomena\\n| We\\n| are\\n| concerned\\n| with\\n| time\\n| series\\n| and\\n| stochastic\\n| processes\\n| that\\n| exhibit\\n| selfsimilarity\\n| with\\n| respect\\n| to\\n| time\\n| Self-similar\\n| phenomena\\n| have\\n| structure\\n| at\\n| arbitrarily\\n| small\\n| scales"
+    },
+    {
+      "role": "user",
+      "content": "are you familiar with the person Xinyi Li?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
+    }
   ]
 ]

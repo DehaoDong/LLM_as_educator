@@ -451,6 +451,7 @@
         window.onload = () => {
             fetchHistory();
             fetchFineTuneDataset();
+            setInterval(fetchHistory, 3000); // Update history every 3 seconds
         };
     </script>
 </body>

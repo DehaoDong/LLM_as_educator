@@ -12,3 +12,4 @@ datasets
 peft
 transformers
 bitsandbytes
+langchain-chroma

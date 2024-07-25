@@ -107,22 +107,26 @@ def save_fine_tune():
     with open(app.config['FINE_TUNE_DATASET'], 'w') as f:
         json.dump(fine_tune_data, f, indent=2)
 
+    # offload model
+    global ppl, llm
+    del llm
+    del ppl
+
+    torch.cuda.empty_cache()
+
     # Trigger fine-tuning
     success, message = fine_tune(model)
     if success:
         # reload model
-        global ppl, llm
-
-        del llm
-        del ppl
-
-        torch.cuda.empty_cache()
-
         ppl = get_model_pipeline(model)
         llm = CodeLlama(ppl=ppl)
 
         return jsonify({"message": message}), 200
     else:
+        # reload model
+        ppl = get_model_pipeline(model)
+        llm = CodeLlama(ppl=ppl)
+
         return jsonify({"error": message}), 500
 
 # Serve the frontend
