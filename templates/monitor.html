@@ -162,6 +162,7 @@
 <body>
     <div id="history-container">
         <h2>History (<span id="history-counter">0</span>)</h2>
+        <div id="history-items"></div>
     </div>
     <div id="fine-tune-container">
         <h2>Fine-tune (<span id="fine-tune-counter">0</span>)</h2>
@@ -197,7 +198,7 @@
         }
 
         function displayHistory(history) {
-            const historyContainer = document.getElementById('history-container');
+            const historyContainer = document.getElementById('history-items');
             const historyCounter = document.getElementById('history-counter');
             historyContainer.innerHTML = ''; // Clear previous content
             historyCounter.textContent = history.length;
