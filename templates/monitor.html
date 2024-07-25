@@ -89,6 +89,16 @@
             height: 24px;
             cursor: pointer;
         }
+        .toggle-button {
+            position: absolute;
+            right: 45px;
+            top: 10px;
+            background-size: contain;
+            border: none;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
         .fine-tune-message .content {
             overflow: hidden; /* Remove scrollbars */
         }
@@ -143,6 +153,10 @@
             z-index: 1000;
             display: none; /* Hidden by default */
         }
+        .collapsed .message:not(.user),
+        .collapsed .fine-tune-message:not(.user) {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -185,11 +199,12 @@
         function displayHistory(history) {
             const historyContainer = document.getElementById('history-container');
             const historyCounter = document.getElementById('history-counter');
+            historyContainer.innerHTML = ''; // Clear previous content
             historyCounter.textContent = history.length;
 
-            history.forEach(conversation => {
+            history.reverse().forEach(conversation => {
                 const conversationElement = document.createElement('div');
-                conversationElement.className = 'conversation';
+                conversationElement.className = 'conversation collapsed';
 
                 const timestampElement = document.createElement('div');
                 timestampElement.className = 'timestamp';
@@ -218,6 +233,12 @@
                 fineTuneButton.onclick = () => addToFineTunePanel(systemMessage, userMessage, assistantMessage);
                 conversationElement.appendChild(fineTuneButton);
 
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'toggle-button';
+                toggleButton.onclick = () => toggleExpandCollapse(conversationElement, toggleButton);
+                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+                conversationElement.appendChild(toggleButton);
+
                 historyContainer.appendChild(conversationElement);
             });
         }
@@ -240,13 +261,26 @@
             return messageElement;
         }
 
+        function toggleExpandCollapse(element, toggleButton) {
+            element.classList.toggle('collapsed');
+            if (element.classList.contains('collapsed')) {
+                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+            } else {
+                toggleButton.style.backgroundImage = "url('/static/images/shrink.png')";
+
+                // Adjust textarea height for all textareas in the expanded element
+                const textareas = element.querySelectorAll('textarea');
+                textareas.forEach(textarea => adjustTextareaHeight(textarea));
+            }
+        }
+
         function addToFineTunePanel(systemMessage, userMessage, assistantMessage) {
             if (!systemMessage || !userMessage || !assistantMessage) return;
 
             const fineTuneItemsContainer = document.getElementById('fine-tune-items');
 
             const fineTuneItem = document.createElement('div');
-            fineTuneItem.className = 'fine-tune-item';
+            fineTuneItem.className = 'fine-tune-item collapsed';
 
             const userElement = createFineTuneMessageElement(userMessage, true);
             const systemElement = createFineTuneMessageElement(systemMessage, true);
@@ -260,6 +294,12 @@
             deleteButton.className = 'delete-button';
             deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
             fineTuneItem.appendChild(deleteButton);
+
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-button';
+            toggleButton.onclick = () => toggleExpandCollapse(fineTuneItem, toggleButton);
+            toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+            fineTuneItem.appendChild(toggleButton);
 
             fineTuneItemsContainer.appendChild(fineTuneItem);
             fineTuneItems.push(fineTuneItem);
@@ -368,7 +408,7 @@
 
             fineTuneDataset.forEach(conversation => {
                 const fineTuneItem = document.createElement('div');
-                fineTuneItem.className = 'fine-tune-item';
+                fineTuneItem.className = 'fine-tune-item collapsed';
 
                 const systemMessage = conversation.find(msg => msg.role === 'system');
                 const userMessage = conversation.find(msg => msg.role === 'user');
@@ -386,6 +426,12 @@
                 deleteButton.className = 'delete-button';
                 deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
                 fineTuneItem.appendChild(deleteButton);
+
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'toggle-button';
+                toggleButton.onclick = () => toggleExpandCollapse(fineTuneItem, toggleButton);
+                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+                fineTuneItem.appendChild(toggleButton);
 
                 fineTuneItemsContainer.appendChild(fineTuneItem);
                 fineTuneItems.push(fineTuneItem);
