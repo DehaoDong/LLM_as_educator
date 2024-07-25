@@ -109,13 +109,12 @@ def save_fine_tune():
 
     # offload model
     global ppl, llm
-    del llm
-    del ppl
-
+    del ppl, llm
     torch.cuda.empty_cache()
 
     # Trigger fine-tuning
     success, message = fine_tune(model)
+    torch.cuda.empty_cache()
     if success:
         # reload model
         ppl = get_model_pipeline(model)
