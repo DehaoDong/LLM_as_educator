@@ -4,6 +4,7 @@ import json
 import torch
 import datasets
 
+
 def fine_tune(model_name):
     try:
         model_id = f"meta-llama/{model_name}"
@@ -42,51 +43,47 @@ def fine_tune(model_name):
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-        # Add a padding token if it doesn't exist
+        # Add padding token if not present
         if tokenizer.pad_token is None:
-            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-            peft_model.resize_token_embeddings(len(tokenizer))
+            tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
 
-        # Save the tokenizer
-        tokenizer.save_pretrained(fine_tuned_model)
-
-        # Load and process the JSON dataset
-        with open("fine_tuning/datasets/fine_tune_dataset.json") as f:
+        # Load and preprocess dataset
+        dataset_path = 'fine_tuning/datasets/fine_tune_dataset.json'
+        with open(dataset_path, 'r') as f:
             data = json.load(f)
 
+        # Create inputs and labels from the dataset
         inputs = []
-        outputs = []
+        labels = []
 
-        for conversation in data:
-            prompt = "<s>"
-            for message in conversation[:-1]:  # Exclude the last message which is the assistant's response
-                role = message["role"]
-                content = message["content"].strip()
-                prompt += f"Source: {role}\n\n{content} <step> "
+        for chat in data:
+            # Extract system and user messages for inputs
+            input_messages = [msg for msg in chat if msg["role"] in ["system", "user"]]
+            input_text = tokenizer.apply_chat_template(input_messages, tokenize=False, add_generation_prompt=False)
+            inputs.append(input_text)
 
-            # Add the destination for the model's response
-            prompt += "Source: assistant\nDestination: user\n\n"
+            # Extract assistant message for labels
+            assistant_message = [msg["content"] for msg in chat if msg["role"] == "assistant"][0]
+            labels.append(assistant_message)
 
-            # The last message is the assistant's response
-            assistant_response = conversation[-1]["content"].strip()
+        # print(f'inputs: {inputs}')
+        # print(f'labels: {labels}')
 
-            inputs.append(prompt.strip())
-            outputs.append(assistant_response.strip())
+        # Create a Dataset object
+        dataset = datasets.Dataset.from_dict({"inputs": inputs, "labels": labels})
 
-        print(f'inputs: {inputs}\n')
-        print(f'outputs: {outputs}\n')
+        # Show dataset details
+        # print("Sample Data:", dataset[0])
 
-        # Tokenize the dataset
-        model_inputs = tokenizer(inputs, truncation=True, padding="max_length", max_length=512)
-        labels = tokenizer(outputs, truncation=True, padding="max_length", max_length=512)
-        model_inputs["labels"] = labels["input_ids"]
+        # Tokenize the formatted input data
+        def tokenize_function(examples):
+            tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=512, padding='max_length')
+            tokenized_labels = tokenizer(examples["labels"], truncation=True, max_length=512, padding='max_length')
 
-        # print(f'model_inputs: {model_inputs}\n')
+            tokenized_inputs["labels"] = tokenized_labels["input_ids"]
+            return tokenized_inputs
 
-        # Convert to dataset format
-        tokenized_dataset = datasets.Dataset.from_dict(model_inputs)
-
-        # print(f'tokenized_dataset: {tokenized_dataset}\n')
+        tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
         # Training arguments
         training_args = TrainingArguments(

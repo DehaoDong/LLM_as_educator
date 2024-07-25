@@ -35,7 +35,7 @@ def get_model_pipeline(model):
         )
 
         # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(fine_tuned_model)
+        tokenizer = AutoTokenizer.from_pretrained(model_id)
 
         # Load model with quantization
         model = AutoModelForCausalLM.from_pretrained(
@@ -45,8 +45,6 @@ def get_model_pipeline(model):
             torch_dtype=torch.float16,
             device_map='auto'
         )
-
-        model.resize_token_embeddings(len(tokenizer))
 
         # Load fine-tuned model
         model = PeftModel.from_pretrained(model, fine_tuned_model)

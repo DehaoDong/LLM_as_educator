@@ -2,15 +2,43 @@
   [
     {
       "role": "system",
-      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nIf you find the context helpful or relevant, answer the question based on the context. If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\ncritical\\n| applications\\n| \u25cf\\n| Make\\n| the\\n| realization\\n| of\\n| the\\n| tactile\\n| internet\\n| possible\\n| \u25cf\\n| Deliver\\n| a\\n| meaningful\\n| and\\n| efficient\\n| broadcast\\n| service\\n| Technical\\n| objectives\\n| 1/5\\n| X\\n| in\\n| end-to-end\\n| latency\n\ncritical\\n| applications\\n| \u25cf\\n| Make\\n| the\\n| realization\\n| of\\n| the\\n| tactile\\n| internet\\n| possible\\n| \u25cf\\n| Deliver\\n| a\\n| meaningful\\n| and\\n| efficient\\n| broadcast\\n| service\\n| Technical\\n| objectives\\n| 1/5\\n| X\\n| in\\n| end-to-end\\n| latency"
+      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nMake sure the context you got is relevant to the question. If so, answer the question based on the context, If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDeterministic\\n| traffic\\n| is\\n| not\\n| bursty\\n| \u25cf\\n| Poisson\\n| process\\n| (in\\n| continuous\\n| time)\\n| and\\n| Bernoulli\\n| process\\n| (in\\n| discrete\\n| time)\\n| are\\n| bursty\\n| as\\n| single\\n| processes\\n| Self-similar\\n| traffic\\n| is\\n| not\n\nself-similar\\n| structure\\n| contains\\n| smaller\\n| replicas\\n| of\\n| itself\\n| at\\n| all\\n| scales\\n| \u25cf\\n| Contrast\\n| with\\n| Poisson\\n| traffic,\\n| where\\n| clustering\\n| occurs\\n| in\\n| the\\n| short\\n| term\\n| but\\n| traffic\\n| smoothes\\n| out\\n| over"
     },
     {
       "role": "user",
-      "content": "who's Xinyi Li?"
+      "content": "Do you know Xinyi Li?"
     },
     {
       "role": "assistant",
-      "content": "I'm not familiar with the name \"Xinyi Li\", Could you please provide more context or information about who this person is?"
+      "content": "  I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
+    }
+  ],
+  [
+    {
+      "role": "system",
+      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nMake sure the context you got is relevant to the question. If so, answer the question based on the context, If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nBitstream\\n| \u25cf\\n| Virtual\\n| Unbundling\\n| Line\\n| Access\\n| (VULA)\\n| \u25cf\\n| Bitstream\\n| Next\\n| Generation\\n| Access\\n| (NGA)\\n| \u25cf\\n| COS\\n| =\\n| Class\\n| of\\n| Service\\n| Fibre\\n| access\\n| Quality\\n| of\\n| service\\n| in\\n| packet\\n| networks\\n| Terms\n\nBitstream\\n| \u25cf\\n| Virtual\\n| Unbundling\\n| Line\\n| Access\\n| (VULA)\\n| \u25cf\\n| Bitstream\\n| Next\\n| Generation\\n| Access\\n| (NGA)\\n| \u25cf\\n| COS\\n| =\\n| Class\\n| of\\n| Service\\n| Fibre\\n| access\\n| Quality\\n| of\\n| service\\n| in\\n| packet\\n| networks\\n| Terms"
+    },
+    {
+      "role": "user",
+      "content": "introduce XinyiLi"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
+    }
+  ],
+  [
+    {
+      "role": "system",
+      "content": "You are Educator Llama, a professional educator who is an expert in the field of computer science. \nYour target is to answer the question asked by the student to help them understand concepts, code, or solve problems.\nThe question will be sent by user, so it will not be in system prompt or context, make sure you identify the question accurately.\nYou should provide explanations, examples, or code snippets to help the student understand knowledge instead of just giving the answer directly.\nSome context that might be helpful will be provided after 'context:'.\nMake sure the context you got is relevant to the question. If so, answer the question based on the context, If not, ignore the context.\nMake sure your answer is accurate, if you don't know the answer, just say you don't know and don't try to make up.\ncontext: Dehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\nDehao\\n| Dong\\n| is\\n| a\\n| student\\n| of\\n| Msc.\\n| Intelligent\\n| Systems\\n| in\\n| Trinity\\n| College\\n| Dublin,\\n| the\\n| son\\n| of\\n| Guojian\\n| Dong.\n\ncritical\\n| applications\\n| \u25cf\\n| Make\\n| the\\n| realization\\n| of\\n| the\\n| tactile\\n| internet\\n| possible\\n| \u25cf\\n| Deliver\\n| a\\n| meaningful\\n| and\\n| efficient\\n| broadcast\\n| service\\n| Technical\\n| objectives\\n| 1/5\\n| X\\n| in\\n| end-to-end\\n| latency\n\ncritical\\n| applications\\n| \u25cf\\n| Make\\n| the\\n| realization\\n| of\\n| the\\n| tactile\\n| internet\\n| possible\\n| \u25cf\\n| Deliver\\n| a\\n| meaningful\\n| and\\n| efficient\\n| broadcast\\n| service\\n| Technical\\n| objectives\\n| 1/5\\n| X\\n| in\\n| end-to-end\\n| latency"
+    },
+    {
+      "role": "user",
+      "content": "Who is Xinyi Li?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm not familiar with Xinyi Li. Can you provide more information about who she is or what she is known for?"
     }
   ]
 ]
