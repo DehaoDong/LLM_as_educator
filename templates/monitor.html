@@ -176,6 +176,7 @@
 
     <script>
         let fineTuneItems = [];
+        let expandedHistoryItems = new Set();
 
         async function fetchHistory() {
             try {
@@ -205,7 +206,7 @@
 
             history.reverse().forEach(conversation => {
                 const conversationElement = document.createElement('div');
-                conversationElement.className = 'conversation collapsed';
+                conversationElement.className = 'conversation';
 
                 const timestampElement = document.createElement('div');
                 timestampElement.className = 'timestamp';
@@ -236,9 +237,17 @@
 
                 const toggleButton = document.createElement('button');
                 toggleButton.className = 'toggle-button';
-                toggleButton.onclick = () => toggleExpandCollapse(conversationElement, toggleButton);
+                toggleButton.onclick = () => toggleExpandCollapse(conversationElement, toggleButton, conversation.timestamp);
                 toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
                 conversationElement.appendChild(toggleButton);
+
+                if (expandedHistoryItems.has(conversation.timestamp)) {
+                    conversationElement.classList.remove('collapsed');
+                    toggleButton.style.backgroundImage = "url('/static/images/collapse.png')";
+                } else {
+                    conversationElement.classList.add('collapsed');
+                    toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+                }
 
                 historyContainer.appendChild(conversationElement);
             });
@@ -262,12 +271,14 @@
             return messageElement;
         }
 
-        function toggleExpandCollapse(element, toggleButton) {
+        function toggleExpandCollapse(element, toggleButton, timestamp) {
             element.classList.toggle('collapsed');
             if (element.classList.contains('collapsed')) {
                 toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+                expandedHistoryItems.delete(timestamp);
             } else {
                 toggleButton.style.backgroundImage = "url('/static/images/shrink.png')";
+                expandedHistoryItems.add(timestamp);
 
                 // Adjust textarea height for all textareas in the expanded element
                 const textareas = element.querySelectorAll('textarea');

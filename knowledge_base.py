@@ -25,9 +25,8 @@ def load_documents(directory="documents"):
 
     return split_documents
 
-def store_chroma(docs, persist_directory="VectorStore"):
+def store_chroma(docs, persist_directory="knowledge_base"):
     db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
-    db.persist()
     return db
 
 def build_knowledge_base():
@@ -36,6 +35,6 @@ def build_knowledge_base():
     store_chroma(documents)
 
 def get_knowledge_base_retriever():
-    db = Chroma(persist_directory='VectorStore', embedding_function=embeddings)
+    db = Chroma(persist_directory='knowledge_base', embedding_function=embeddings)
     retriever = db.as_retriever()
     return retriever

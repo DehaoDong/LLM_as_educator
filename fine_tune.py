@@ -31,7 +31,7 @@ def fine_tune(model_name):
         lora_config = LoraConfig(
             r=64,
             lora_alpha=16,
-            target_modules=["q_proj", "v_proj"],  # Use the specific target modules you want to apply LoRA to
+            target_modules=["q_proj", "v_proj"],
             lora_dropout=0.0,
             bias="none",
             task_type="CAUSAL_LM",
@@ -91,7 +91,7 @@ def fine_tune(model_name):
             learning_rate=2e-5,
             per_device_train_batch_size=8,
             per_device_eval_batch_size=8,
-            num_train_epochs=3,
+            num_train_epochs=10,
             weight_decay=0.01,
             fp16=False,  # Disable fp16 to avoid gradient scaling issues
         )
