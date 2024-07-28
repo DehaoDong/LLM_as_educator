@@ -18,7 +18,7 @@ embeddings = load_embedding_model()
 def load_documents(directory="documents"):
     loader = DirectoryLoader(directory)
     documents = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=256, chunk_overlap=128, separator=r'\n| ', is_separator_regex=True)
+    text_splitter = CharacterTextSplitter(chunk_size=256, chunk_overlap=128, separator=" ")
     split_documents = text_splitter.split_documents(documents)
 
     # print(split_documents)

@@ -31,12 +31,7 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
         lora_config = LoraConfig(
             r=64,
             lora_alpha=16,
-            target_modules=[
-                "q_proj",
-                "k_proj",
-                "v_proj",
-                "o_proj",
-            ],
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj",],
             lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM",

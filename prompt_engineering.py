@@ -21,8 +21,7 @@ If the context does not include relevant information to the question, ignore the
 
 AD_PROMPT_TEMPLATE = PromptTemplate.from_template("""
 <<SYS>>
-You will be given a group of prompt and response, generate 4 groups of various prompts and responses that have similar meanings.
-Try your best to make the prompts and responses various but don't change the key meaning.
+You will be given a group of prompt and response, use methods like paraphrasing or synonym replacement to generate 4 groups of various prompts and responses that have similar meanings.
 Follow the same json format, and don't say anything except the json data.
 Example:
 User:
