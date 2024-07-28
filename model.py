@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 HISTORY_FILE = 'history/history.json'
 HISTORY_LIMIT = 20
 
+# For saving history in a separate thread
 executor = ThreadPoolExecutor(max_workers=1)
 
 def get_model_pipeline(model):
@@ -69,10 +70,8 @@ class CodeLlama(LLM):
         return str(self.ppl)
 
     def __extract_answer(self, result):
-        # Access the first item in the 'generated_text' list
         generated_text = result[0]['generated_text']
 
-        # Loop through the list to find the dictionary with the role 'assistant'
         for message in generated_text:
             if message['role'] == 'assistant':
                 return message['content'].strip()

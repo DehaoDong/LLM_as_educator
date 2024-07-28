@@ -17,9 +17,11 @@ app.config['FINE_TUNE_DATASET'] = 'fine_tuning/datasets/fine_tune_dataset.json'
 
 model = "CodeLlama-7b-Instruct-hf"
 
+# LLM handler
 ppl = get_model_pipeline(model)
 llm = CodeLlama(ppl=ppl)
 
+# Generate a response
 @app.route('/generate', methods=['POST'])
 def generate():
     data = request.get_json()
@@ -45,9 +47,11 @@ def generate():
 
     return jsonify(web_response)
 
+# Check if the file is allowed
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+# Upload files
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'documents' not in request.files:
@@ -68,6 +72,7 @@ def upload_file():
 
     return jsonify({"message": "Files uploaded and knowledge base updated successfully."})
 
+# Get history
 @app.route('/history', methods=['GET'])
 def get_history():
     history_file = 'history/history.json'
@@ -78,6 +83,7 @@ def get_history():
     else:
         return jsonify([])
 
+# Get fine-tune dataset
 @app.route('/fine-tune-dataset', methods=['GET'])
 def get_fine_tune_dataset():
     if os.path.exists(app.config['FINE_TUNE_DATASET']):
@@ -87,6 +93,7 @@ def get_fine_tune_dataset():
     else:
         return jsonify([])
 
+# Save fine-tune dataset
 @app.route('/save-finetune', methods=['POST'])
 def save_fine_tune():
     fine_tune_data = request.get_json()
@@ -128,6 +135,7 @@ def save_fine_tune():
 
         return jsonify({"error": message}), 500
 
+# Augment a conversation
 @app.route('/augment-finetune', methods=['POST'])
 def augment_fine_tune():
     data = request.get_json()
@@ -183,6 +191,7 @@ def augment_fine_tune():
 def serve_index():
     return render_template('index.html')
 
+# Monitor page
 @app.route('/monitor')
 def serve_monitor():
     return render_template('monitor.html')

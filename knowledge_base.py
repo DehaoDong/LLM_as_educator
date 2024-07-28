@@ -18,6 +18,8 @@ embeddings = load_embedding_model()
 def load_documents(directory="documents"):
     loader = DirectoryLoader(directory)
     documents = loader.load()
+
+    # Split documents
     text_splitter = CharacterTextSplitter(chunk_size=256, chunk_overlap=128, separator=" ")
     split_documents = text_splitter.split_documents(documents)
 
@@ -26,6 +28,7 @@ def load_documents(directory="documents"):
     return split_documents
 
 def store_chroma(docs, persist_directory="knowledge_base"):
+    # Delete old knowledge base
     old_db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
     old_db.delete_collection()
 

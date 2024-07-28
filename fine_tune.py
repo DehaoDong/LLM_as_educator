@@ -71,7 +71,7 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
         # Tokenize the formatted input data
         def tokenize_function(examples):
             tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=1024, padding=True)
-            # Use the inputs as labels for self-supervised learning
+            # Self-supervised learning
             tokenized_inputs["labels"] = tokenized_inputs["input_ids"].copy()
             return tokenized_inputs
 
@@ -96,7 +96,6 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
             train_dataset=tokenized_dataset,
         )
 
-        # Train model
         trainer.train()
 
         # Save the model
@@ -108,7 +107,6 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
         return False, str(e)
 
 
-# Example usage:
 if __name__ == "__main__":
     model_name = "CodeLlama-7b-Instruct-hf"
     success, message = fine_tune(model_name)
