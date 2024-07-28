@@ -5,7 +5,7 @@ import torch
 import datasets
 
 
-def fine_tune(model_name):
+def fine_tune(model_name, learning_rate=3e-4, num_train_epochs=30):
     try:
         model_id = f"meta-llama/{model_name}"
         fine_tuned_model = f"fine_tuning/fine_tuned_model/{model_name}_QLoRA"
@@ -31,8 +31,13 @@ def fine_tune(model_name):
         lora_config = LoraConfig(
             r=64,
             lora_alpha=16,
-            target_modules=["q_proj", "v_proj"],
-            lora_dropout=0.0,
+            target_modules=[
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "o_proj",
+            ],
+            lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM",
         )
@@ -43,57 +48,50 @@ def fine_tune(model_name):
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-        # Add padding token if not present
-        if tokenizer.pad_token is None:
-            tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
-
         # Load and preprocess dataset
         dataset_path = 'fine_tuning/datasets/fine_tune_dataset.json'
         with open(dataset_path, 'r') as f:
             data = json.load(f)
 
-        # Create inputs and labels from the dataset
-        inputs = []
-        labels = []
+        # Format data
+        # formatted_data = []
+        # for chat in data:
+        #     # print(f'chat: {chat}')
+        #     formatted_chat = ""
+        #     for msg in chat:
+        #         # print(f'msg: {msg}')
+        #         formatted_chat += f"<{msg['role']}>\n{msg['content']}\n</{msg['role']}>\n"
+        #     formatted_data.append(formatted_chat.strip())
 
-        for chat in data:
-            # Extract system and user messages for inputs
-            input_messages = [msg for msg in chat if msg["role"] in ["system", "user"]]
-            input_text = tokenizer.apply_chat_template(input_messages, tokenize=False, add_generation_prompt=False)
-            inputs.append(input_text)
+        formatted_data = tokenizer.apply_chat_template(data, tokenize=False, add_generation_prompt=True)
 
-            # Extract assistant message for labels
-            assistant_message = [msg["content"] for msg in chat if msg["role"] == "assistant"][0]
-            labels.append(assistant_message)
-
-        # print(f'inputs: {inputs}')
-        # print(f'labels: {labels}')
+        # print(formatted_data)
+        # print(f'length of formatted data: {len(formatted_data)}')
 
         # Create a Dataset object
-        dataset = datasets.Dataset.from_dict({"inputs": inputs, "labels": labels})
+        dataset = datasets.Dataset.from_dict({"inputs": formatted_data})
 
-        # Show dataset details
-        # print("Sample Data:", dataset[0])
+        tokenizer.pad_token = tokenizer.eos_token
 
         # Tokenize the formatted input data
         def tokenize_function(examples):
-            tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=512, padding='max_length')
-            tokenized_labels = tokenizer(examples["labels"], truncation=True, max_length=512, padding='max_length')
-
-            tokenized_inputs["labels"] = tokenized_labels["input_ids"]
+            tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=1024, padding=True)
+            # Use the inputs as labels for self-supervised learning
+            tokenized_inputs["labels"] = tokenized_inputs["input_ids"].copy()
             return tokenized_inputs
+
 
         tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
         # Training arguments
         training_args = TrainingArguments(
             output_dir=fine_tuned_model,
-            learning_rate=2e-5,
+            learning_rate=learning_rate,
             per_device_train_batch_size=8,
             per_device_eval_batch_size=8,
-            num_train_epochs=10,
+            num_train_epochs=num_train_epochs,
             weight_decay=0.01,
-            fp16=False,  # Disable fp16 to avoid gradient scaling issues
+            fp16=True,
         )
 
         # Trainer

@@ -26,8 +26,11 @@ def load_documents(directory="documents"):
     return split_documents
 
 def store_chroma(docs, persist_directory="knowledge_base"):
-    db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
-    return db
+    old_db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
+    old_db.delete_collection()
+
+    new_db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
+    return new_db
 
 def build_knowledge_base():
     print('Building knowledge base...')
@@ -38,3 +41,6 @@ def get_knowledge_base_retriever():
     db = Chroma(persist_directory='knowledge_base', embedding_function=embeddings)
     retriever = db.as_retriever()
     return retriever
+
+if __name__ == '__main__':
+    build_knowledge_base()

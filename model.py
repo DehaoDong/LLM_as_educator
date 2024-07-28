@@ -19,13 +19,15 @@ def get_model_pipeline(model):
 
     # if exists fine-tuned model return fine-tuned model, else return the base model
     if not os.path.exists(fine_tuned_model):
+        print("Loading base model...")
         ppl = pipeline(task="text-generation",
                             model="meta-llama/CodeLlama-7b-Instruct-hf",
-                            max_new_tokens=512,
+                            max_new_tokens=1024,
                             device_map="auto",
                             torch_dtype=torch.bfloat16)
         return ppl
     else:
+        print("Loading fine-tuned model...")
         # Define the quantization configuration
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -53,7 +55,7 @@ def get_model_pipeline(model):
         ppl = pipeline(task="text-generation",
                        model=model,
                        tokenizer=tokenizer,
-                       max_new_tokens=512,
+                       max_new_tokens=1024,
                        device_map="auto",
                        torch_dtype=torch.bfloat16)
 
@@ -107,10 +109,10 @@ class CodeLlama(LLM):
         executor.submit(save_to_file, result)
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        sys_prompt_start = prompt.find("<SYS>") + len("<SYS>")
-        sys_prompt_end = prompt.find("</SYS>")
-        usr_prompt_start = prompt.find("<USR>") + len("<USR>")
-        usr_prompt_end = prompt.find("</USR>")
+        sys_prompt_start = prompt.find("<<SYS>>") + len("<<SYS>>")
+        sys_prompt_end = prompt.find("<</SYS>>")
+        usr_prompt_start = prompt.find("<<USR>>") + len("<<USR>>")
+        usr_prompt_end = prompt.find("<</USR>>")
 
         system_prompt = prompt[sys_prompt_start:sys_prompt_end].strip()
         user_prompt = prompt[usr_prompt_start:usr_prompt_end].strip()

@@ -7,6 +7,6 @@ chat = [
    {"role": "assistant", "content": "assistant prompt"}
 ]
 
-chat_template = tokenizer.apply_chat_template(chat, tokenize=False)
+chat_template = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 
 print(chat_template)
