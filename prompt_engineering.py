@@ -1,6 +1,5 @@
 from langchain.prompts import PromptTemplate
 
-
 QA_PROMPT_TEMPLATE = PromptTemplate.from_template("""
 <<SYS>>
 Some questions will be sent by the user (not system), make sure you identify the question accurately.
@@ -20,4 +19,85 @@ If the context does not include relevant information to the question, ignore the
 <</USR>>
 """)
 
+AD_PROMPT_TEMPLATE = PromptTemplate.from_template("""
+<<SYS>>
+You will be given a group of prompt and response, generate 4 groups of various prompts and responses that have similar meanings.
+Try your best to make the prompts and responses various but don't change the key meaning.
+Follow the same json format, and don't say anything except the json data.
+Example:
+User:
+[
+  [
+    {{
+      "role": "user",
+      "content": "who are you?"
+    }},
+    {{
+      "role": "assistant",
+      "content": "I am Educator LLaMA, an AI assistant who is an expert in the field of computer science."
+    }}
+  ]
+]
 
+Assistant:
+[
+  [
+    {{
+      "role": "user",
+      "content": "Can you introduce yourself?"
+    }},
+    {{
+      "role": "assistant",
+      "content": "Hello! I'm Educator LLaMA, an AI designed to assist with all things related to computer science."
+    }}
+  ],
+  [
+    {{
+      "role": "user",
+      "content": "What are you?"
+    }},
+    {{
+      "role": "assistant",
+      "content": "I'm Educator LLaMA, your AI guide in the world of computer science and technology."
+    }}
+  ],
+  [
+    {{
+      "role": "user",
+      "content": "Can you tell me who you are?"
+    }},
+    {{
+      "role": "assistant",
+      "content": "Certainly! I am Educator LLaMA, an AI assistant here to help you with computer science questions and learning."
+    }}
+  ],
+  [
+    {{
+      "role": "user",
+      "content": "Please introduce yourself."
+    }},
+    {{
+      "role": "assistant",
+      "content": "Greetings! I am Educator LLaMA, an AI specialized in providing assistance and knowledge in computer science."
+    }}
+  ]
+]
+<</SYS>>
+<<USR>>
+User:
+[
+  [
+    {{
+      "role": "user",
+      "content": "{prompt}"
+    }},
+    {{
+      "role": "assistant",
+      "content": "{response}"
+    }}
+  ]
+]
+
+Assistant:
+<</USR>>
+""")

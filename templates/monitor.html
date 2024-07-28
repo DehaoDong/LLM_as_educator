@@ -12,6 +12,7 @@
             display: flex;
             background-color: #f9f9f9;
         }
+
         #history-container, #fine-tune-container {
             margin: 20px;
             display: flex;
@@ -24,12 +25,15 @@
             height: calc(100vh - 40px); /* Subtracting margin */
             overflow-y: auto;
         }
+
         #history-container {
             margin-right: 0; /* Remove right margin for the left container */
         }
+
         #fine-tune-container {
             margin-left: 0; /* Remove left margin for the right container */
         }
+
         .conversation, .fine-tune-item {
             margin-bottom: 20px;
             padding: 10px;
@@ -38,35 +42,43 @@
             background-color: #f1f1f1;
             position: relative;
         }
+
         .timestamp {
             font-size: 12px;
             color: #888;
             margin-bottom: 5px;
         }
+
         .message, .fine-tune-message {
             display: flex;
             flex-direction: column;
             margin: 10px 0;
         }
+
         .message .role, .fine-tune-message .role {
             font-weight: bold;
             margin-bottom: 5px;
         }
+
         .message .content, .fine-tune-message .content {
             background-color: #e0e0e0;
             padding: 10px;
             border-radius: 5px;
             white-space: pre-wrap;
         }
+
         .message.user .content, .fine-tune-message.user .content {
             background-color: #d1e7dd;
         }
+
         .message.system .content {
             background-color: #e2e3e5;
         }
+
         .message.assistant .content, .fine-tune-message.assistant .content {
             background-color: #f8d7da;
         }
+
         .fine-tune-button {
             position: absolute;
             right: 10px;
@@ -78,6 +90,7 @@
             height: 24px;
             cursor: pointer;
         }
+
         .delete-button {
             position: absolute;
             right: 10px;
@@ -89,6 +102,23 @@
             height: 24px;
             cursor: pointer;
         }
+
+        .augment-button-wrapper {
+            position: relative;
+            width: 24px;
+            height: 24px;
+        }
+
+        .augment-button {
+            position: absolute;
+            background: url('/static/images/augmented.png') no-repeat center center;
+            background-size: contain;
+            border: none;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
         .toggle-button {
             position: absolute;
             right: 45px;
@@ -99,9 +129,11 @@
             height: 24px;
             cursor: pointer;
         }
+
         .fine-tune-message .content {
             overflow: hidden; /* Remove scrollbars */
         }
+
         #save-button-wrapper {
             position: relative; /* To position the loader correctly */
             align-self: center; /* Center the button */
@@ -109,6 +141,7 @@
             justify-content: center;
             align-items: center;
         }
+
         #save-button {
             padding: 10px;
             background-color: #007bff;
@@ -117,32 +150,42 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         #save-button:disabled {
             background-color: #999; /* Change color to indicate disabled state */
             cursor: not-allowed; /* Change cursor to indicate disabled state */
         }
+
         #save-button:hover:enabled {
             background-color: #0056b3;
         }
+
         textarea {
             resize: none; /* Prevent resizing */
             overflow: hidden; /* Remove scrollbars */
             height: auto; /* Expand to fit content */
         }
+
         .loader {
             border: 8px solid #f3f3f3; /* Light grey */
             border-top: 8px solid #3498db; /* Blue */
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 15px;
+            height: 15px;
             animation: spin 2s linear infinite;
             position: absolute;
             display: none; /* Hidden by default */
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .overlay {
             position: fixed;
             top: 0;
@@ -153,6 +196,7 @@
             z-index: 1000;
             display: none; /* Hidden by default */
         }
+
         .collapsed .message:not(.user),
         .collapsed .fine-tune-message:not(.user) {
             display: none;
@@ -160,139 +204,392 @@
     </style>
 </head>
 <body>
-    <div id="history-container">
-        <h2>History (<span id="history-counter">0</span>)</h2>
-        <div id="history-items"></div>
+<div id="history-container">
+    <h2>History (<span id="history-counter">0</span>)</h2>
+    <div id="history-items"></div>
+</div>
+<div id="fine-tune-container">
+    <h2>Fine-tune (<span id="fine-tune-counter">0</span>)</h2>
+    <div id="fine-tune-items"></div>
+    <div id="save-button-wrapper">
+        <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
+        <div class="loader" id="loader"></div>
     </div>
-    <div id="fine-tune-container">
-        <h2>Fine-tune (<span id="fine-tune-counter">0</span>)</h2>
-        <div id="fine-tune-items"></div>
-        <div id="save-button-wrapper">
-            <button id="save-button" onclick="saveFineTune()">Save&Apply</button>
-            <div class="loader" id="loader"></div>
-        </div>
-    </div>
-    <div class="overlay" id="overlay"></div>
+</div>
+<div class="overlay" id="overlay"></div>
 
-    <script>
-        let fineTuneItems = [];
-        let expandedHistoryItems = new Set();
+<script>
+    let fineTuneItems = [];
+    let expandedHistoryItems = new Set();
 
-        async function fetchHistory() {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/history');
-                const data = await response.json();
-                displayHistory(data);
-            } catch (error) {
-                console.error('Error fetching history:', error);
+    async function fetchHistory() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/history');
+            const data = await response.json();
+            displayHistory(data);
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        }
+    }
+
+    async function fetchFineTuneDataset() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/fine-tune-dataset');
+            const data = await response.json();
+            displayFineTuneDataset(data);
+        } catch (error) {
+            console.error('Error fetching fine-tune dataset:', error);
+        }
+    }
+
+    function displayHistory(history) {
+        const historyContainer = document.getElementById('history-items');
+        const historyCounter = document.getElementById('history-counter');
+        historyContainer.innerHTML = ''; // Clear previous content
+        historyCounter.textContent = history.length;
+
+        history.reverse().forEach(conversation => {
+            const conversationElement = document.createElement('div');
+            conversationElement.className = 'conversation';
+
+            const timestampElement = document.createElement('div');
+            timestampElement.className = 'timestamp';
+            timestampElement.textContent = new Date(conversation.timestamp).toLocaleString();
+            conversationElement.appendChild(timestampElement);
+
+            const userMessage = conversation.generated_text.find(msg => msg.role === 'user');
+            const systemMessage = conversation.generated_text.find(msg => msg.role === 'system');
+            const assistantMessage = conversation.generated_text.find(msg => msg.role === 'assistant');
+
+            if (userMessage) {
+                const userElement = createMessageElement(userMessage);
+                conversationElement.appendChild(userElement);
             }
-        }
-
-        async function fetchFineTuneDataset() {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/fine-tune-dataset');
-                const data = await response.json();
-                displayFineTuneDataset(data);
-            } catch (error) {
-                console.error('Error fetching fine-tune dataset:', error);
+            if (systemMessage) {
+                const systemElement = createMessageElement(systemMessage);
+                conversationElement.appendChild(systemElement);
             }
-        }
+            if (assistantMessage) {
+                const assistantElement = createMessageElement(assistantMessage);
+                conversationElement.appendChild(assistantElement);
+            }
 
-        function displayHistory(history) {
-            const historyContainer = document.getElementById('history-items');
-            const historyCounter = document.getElementById('history-counter');
-            historyContainer.innerHTML = ''; // Clear previous content
-            historyCounter.textContent = history.length;
+            const fineTuneButton = document.createElement('button');
+            fineTuneButton.className = 'fine-tune-button';
+            fineTuneButton.onclick = () => addToFineTunePanel(systemMessage, userMessage, assistantMessage);
+            conversationElement.appendChild(fineTuneButton);
 
-            history.reverse().forEach(conversation => {
-                const conversationElement = document.createElement('div');
-                conversationElement.className = 'conversation';
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-button';
+            toggleButton.onclick = () => toggleExpandCollapse(conversationElement, toggleButton, conversation.timestamp);
+            toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+            conversationElement.appendChild(toggleButton);
 
-                const timestampElement = document.createElement('div');
-                timestampElement.className = 'timestamp';
-                timestampElement.textContent = new Date(conversation.timestamp).toLocaleString();
-                conversationElement.appendChild(timestampElement);
-
-                const userMessage = conversation.generated_text.find(msg => msg.role === 'user');
-                const systemMessage = conversation.generated_text.find(msg => msg.role === 'system');
-                const assistantMessage = conversation.generated_text.find(msg => msg.role === 'assistant');
-
-                if (userMessage) {
-                    const userElement = createMessageElement(userMessage);
-                    conversationElement.appendChild(userElement);
-                }
-                if (systemMessage) {
-                    const systemElement = createMessageElement(systemMessage);
-                    conversationElement.appendChild(systemElement);
-                }
-                if (assistantMessage) {
-                    const assistantElement = createMessageElement(assistantMessage);
-                    conversationElement.appendChild(assistantElement);
-                }
-
-                const fineTuneButton = document.createElement('button');
-                fineTuneButton.className = 'fine-tune-button';
-                fineTuneButton.onclick = () => addToFineTunePanel(systemMessage, userMessage, assistantMessage);
-                conversationElement.appendChild(fineTuneButton);
-
-                const toggleButton = document.createElement('button');
-                toggleButton.className = 'toggle-button';
-                toggleButton.onclick = () => toggleExpandCollapse(conversationElement, toggleButton, conversation.timestamp);
-                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
-                conversationElement.appendChild(toggleButton);
-
-                if (expandedHistoryItems.has(conversation.timestamp)) {
-                    conversationElement.classList.remove('collapsed');
-                    toggleButton.style.backgroundImage = "url('/static/images/collapse.png')";
-                } else {
-                    conversationElement.classList.add('collapsed');
-                    toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
-                }
-
-                historyContainer.appendChild(conversationElement);
-            });
-        }
-
-        function createMessageElement(message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message ' + message.role;
-
-            const roleElement = document.createElement('div');
-            roleElement.className = 'role';
-            roleElement.textContent = message.role.charAt(0).toUpperCase() + message.role.slice(1);
-
-            const contentElement = document.createElement('div');
-            contentElement.className = 'content';
-            contentElement.textContent = message.content;
-
-            messageElement.appendChild(roleElement);
-            messageElement.appendChild(contentElement);
-
-            return messageElement;
-        }
-
-        function toggleExpandCollapse(element, toggleButton, timestamp) {
-            element.classList.toggle('collapsed');
-            if (element.classList.contains('collapsed')) {
-                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
-                expandedHistoryItems.delete(timestamp);
-            } else {
+            if (expandedHistoryItems.has(conversation.timestamp)) {
+                conversationElement.classList.remove('collapsed');
                 toggleButton.style.backgroundImage = "url('/static/images/collapse.png')";
-                expandedHistoryItems.add(timestamp);
-
-                // Adjust textarea height for all textareas in the expanded element
-                const textareas = element.querySelectorAll('textarea');
-                textareas.forEach(textarea => adjustTextareaHeight(textarea));
+            } else {
+                conversationElement.classList.add('collapsed');
+                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
             }
-        }
 
-        function addToFineTunePanel(systemMessage, userMessage, assistantMessage) {
-            if (!systemMessage || !userMessage || !assistantMessage) return;
+            historyContainer.appendChild(conversationElement);
+        });
+    }
+
+    function createMessageElement(message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message ' + message.role;
+
+        const roleElement = document.createElement('div');
+        roleElement.className = 'role';
+        roleElement.textContent = message.role.charAt(0).toUpperCase() + message.role.slice(1);
+
+        const contentElement = document.createElement('div');
+        contentElement.className = 'content';
+        contentElement.textContent = message.content;
+
+        messageElement.appendChild(roleElement);
+        messageElement.appendChild(contentElement);
+
+        return messageElement;
+    }
+
+    function toggleExpandCollapse(element, toggleButton, timestamp) {
+        element.classList.toggle('collapsed');
+        if (element.classList.contains('collapsed')) {
+            toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+            expandedHistoryItems.delete(timestamp);
+        } else {
+            toggleButton.style.backgroundImage = "url('/static/images/collapse.png')";
+            expandedHistoryItems.add(timestamp);
+
+            // Adjust textarea height for all textareas in the expanded element
+            const textareas = element.querySelectorAll('textarea');
+            textareas.forEach(textarea => adjustTextareaHeight(textarea));
+        }
+    }
+
+    function addToFineTunePanel(systemMessage, userMessage, assistantMessage) {
+        if (!systemMessage || !userMessage || !assistantMessage) return;
+
+        const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+
+        const fineTuneItem = document.createElement('div');
+        fineTuneItem.className = 'fine-tune-item collapsed';
+
+        const userElement = createFineTuneMessageElement(userMessage, true);
+        const systemElement = createFineTuneMessageElement(systemMessage, true);
+        const assistantElement = createFineTuneMessageElement(assistantMessage, false);
+
+        fineTuneItem.appendChild(userElement);
+        fineTuneItem.appendChild(systemElement);
+        fineTuneItem.appendChild(assistantElement);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
+        fineTuneItem.appendChild(deleteButton);
+
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'toggle-button';
+        toggleButton.onclick = () => toggleExpandCollapse(fineTuneItem, toggleButton);
+        toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
+        fineTuneItem.appendChild(toggleButton);
+
+        const augmentButtonWrapper = document.createElement('div');
+        augmentButtonWrapper.className = 'augment-button-wrapper';
+
+        const augmentButton = document.createElement('button');
+        augmentButton.className = 'augment-button';
+        augmentButton.onclick = () => augmentFineTuneRecord(fineTuneItem, assistantElement.querySelector('textarea').value, augmentButtonWrapper);
+        augmentButtonWrapper.appendChild(augmentButton);
+
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        augmentButtonWrapper.appendChild(loader);
+
+        fineTuneItem.appendChild(augmentButtonWrapper);
+
+        fineTuneItemsContainer.appendChild(fineTuneItem);
+        fineTuneItems.push(fineTuneItem);
+
+        adjustTextareaHeight(assistantElement.querySelector('textarea'));
+        updateFineTuneCounter();
+    }
+
+    function createFineTuneMessageElement(message, readOnly) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'fine-tune-message ' + message.role;
+
+        const roleElement = document.createElement('div');
+        roleElement.className = 'role';
+        roleElement.textContent = message.role.charAt(0).toUpperCase() + message.role.slice(1);
+
+        const contentElement = document.createElement(readOnly ? 'div' : 'textarea');
+        contentElement.className = 'content';
+        if (readOnly) {
+            contentElement.textContent = message.content;
+        } else {
+            contentElement.value = message.content;
+            contentElement.style.resize = 'none'; /* Prevent resizing */
+            contentElement.style.overflow = 'hidden'; /* Remove scrollbars */
+            contentElement.style.height = 'auto'; /* Expand to fit content */
+            contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
+        }
+        contentElement.readOnly = readOnly;
+
+        messageElement.appendChild(roleElement);
+        messageElement.appendChild(contentElement);
+
+        return messageElement;
+    }
+
+    function adjustTextareaHeight(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    function removeFromFineTunePanel(fineTuneItem) {
+        const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+        fineTuneItemsContainer.removeChild(fineTuneItem);
+        fineTuneItems = fineTuneItems.filter(item => item !== fineTuneItem);
+        updateFineTuneCounter();
+    }
+
+    async function saveFineTune() {
+        const fineTuneData = fineTuneItems.map(item => {
+            const system = item.querySelector('.fine-tune-message.system .content').textContent;
+            const user = item.querySelector('.fine-tune-message.user .content').textContent;
+            const assistant = item.querySelector('.fine-tune-message.assistant .content').value;
+            return [
+                {role: 'system', content: system},
+                {role: 'user', content: user},
+                {role: 'assistant', content: assistant}
+            ];
+        });
+
+        const overlay = document.getElementById('overlay');
+        const loader = document.getElementById('loader');
+        const saveButton = document.getElementById('save-button');
+
+        // Show loading animation
+        overlay.style.display = 'block';
+        loader.style.display = 'block';
+        saveButton.style.display = 'none'; // Hide save button
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/save-finetune', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(fineTuneData),
+            });
+
+            const data = await response.json();
+
+            // Hide loading animation
+            overlay.style.display = 'none';
+            loader.style.display = 'none';
+            saveButton.style.display = 'block'; // Show save button again
+
+            alert(data.message || data.error);
+            if (data.message) {
+                document.getElementById('fine-tune-items').innerHTML = '';
+                fineTuneItems = [];
+                fetchFineTuneDataset(); // Reload the dataset
+            }
+        } catch (error) {
+            // Hide loading animation
+            overlay.style.display = 'none';
+            loader.style.display = 'none';
+            saveButton.style.display = 'block'; // Show save button again
+
+            alert('Error: Could not save fine-tune data.');
+        }
+    }
+
+    async function augmentFineTuneRecord(fineTuneItem, newAssistantContent, augmentButtonWrapper) {
+        const overlay = document.getElementById('overlay');
+        const loader = augmentButtonWrapper.querySelector('.loader');
+        const augmentButton = augmentButtonWrapper.querySelector('.augment-button');
+
+        // Show loading animation
+        overlay.style.display = 'block';
+        loader.style.display = 'block';
+        augmentButton.style.display = 'none';
+
+        const fineTuneData = [
+            {
+                role: 'system',
+                content: fineTuneItem.querySelector('.fine-tune-message.system .content').textContent
+            },
+            {
+                role: 'user',
+                content: fineTuneItem.querySelector('.fine-tune-message.user .content').textContent
+            },
+            {
+                role: 'assistant',
+                content: newAssistantContent
+            }
+        ];
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/augment-finetune', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(fineTuneData),
+            });
+
+            const data = await response.json();
+
+            // Hide loading animation
+            overlay.style.display = 'none';
+            loader.style.display = 'none';
+            augmentButton.style.display = 'block';
+
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Success: ' + data.message);
+                displayNewFineTuneRecords(data.new_records);
+            }
+        } catch (error) {
+            // Hide loading animation
+            overlay.style.display = 'none';
+            loader.style.display = 'none';
+            augmentButton.style.display = 'block';
+
+            alert('Error: Could not augment fine-tune data.');
+        }
+    }
+
+    function displayNewFineTuneRecords(newRecords) {
+        newRecords.forEach(record => {
+            const fineTuneItem = document.createElement('div');
+            fineTuneItem.className = 'fine-tune-item';
+
+            const systemElement = createFineTuneMessageElement(record[0], true);
+            const userElement = createFineTuneMessageElement(record[1], true);
+            const assistantElement = createFineTuneMessageElement(record[2], false);
+
+            fineTuneItem.appendChild(userElement);
+            fineTuneItem.appendChild(systemElement);
+            fineTuneItem.appendChild(assistantElement);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
+            fineTuneItem.appendChild(deleteButton);
+
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-button';
+            toggleButton.onclick = () => toggleExpandCollapse(fineTuneItem, toggleButton);
+            toggleButton.style.backgroundImage = "url('/static/images/collapse.png')";
+            fineTuneItem.appendChild(toggleButton);
+
+            const augmentButtonWrapper = document.createElement('div');
+            augmentButtonWrapper.className = 'augment-button-wrapper';
+
+            const augmentButton = document.createElement('button');
+            augmentButton.className = 'augment-button';
+            augmentButton.onclick = () => augmentFineTuneRecord(fineTuneItem, assistantElement.querySelector('textarea').value, augmentButtonWrapper);
+            augmentButtonWrapper.appendChild(augmentButton);
+
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            augmentButtonWrapper.appendChild(loader);
+
+            fineTuneItem.appendChild(augmentButtonWrapper);
 
             const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+            fineTuneItemsContainer.appendChild(fineTuneItem);
+            fineTuneItems.push(fineTuneItem);
 
+            adjustTextareaHeight(assistantElement.querySelector('textarea'));
+
+            fineTuneItem.classList.remove('collapsed');
+        });
+
+        updateFineTuneCounter();
+    }
+
+    function displayFineTuneDataset(fineTuneDataset) {
+        const fineTuneItemsContainer = document.getElementById('fine-tune-items');
+        const fineTuneCounter = document.getElementById('fine-tune-counter');
+        fineTuneItemsContainer.innerHTML = ''; // Clear previous content
+        fineTuneItems = []; // Clear fineTuneItems array
+
+        fineTuneDataset.forEach(conversation => {
             const fineTuneItem = document.createElement('div');
             fineTuneItem.className = 'fine-tune-item collapsed';
+
+            const systemMessage = conversation.find(msg => msg.role === 'system');
+            const userMessage = conversation.find(msg => msg.role === 'user');
+            const assistantMessage = conversation.find(msg => msg.role === 'assistant');
 
             const userElement = createFineTuneMessageElement(userMessage, true);
             const systemElement = createFineTuneMessageElement(systemMessage, true);
@@ -313,157 +610,39 @@
             toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
             fineTuneItem.appendChild(toggleButton);
 
+            const augmentButtonWrapper = document.createElement('div');
+            augmentButtonWrapper.className = 'augment-button-wrapper';
+
+            const augmentButton = document.createElement('button');
+            augmentButton.className = 'augment-button';
+            augmentButton.onclick = () => augmentFineTuneRecord(fineTuneItem, assistantElement.querySelector('textarea').value, augmentButtonWrapper);
+            augmentButtonWrapper.appendChild(augmentButton);
+
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            augmentButtonWrapper.appendChild(loader);
+
+            fineTuneItem.appendChild(augmentButtonWrapper);
+
             fineTuneItemsContainer.appendChild(fineTuneItem);
             fineTuneItems.push(fineTuneItem);
 
             adjustTextareaHeight(assistantElement.querySelector('textarea'));
-            updateFineTuneCounter();
-        }
+        });
 
-        function createFineTuneMessageElement(message, readOnly) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'fine-tune-message ' + message.role;
+        fineTuneCounter.textContent = fineTuneDataset.length;
+    }
 
-            const roleElement = document.createElement('div');
-            roleElement.className = 'role';
-            roleElement.textContent = message.role.charAt(0).toUpperCase() + message.role.slice(1);
+    function updateFineTuneCounter() {
+        const fineTuneCounter = document.getElementById('fine-tune-counter');
+        fineTuneCounter.textContent = fineTuneItems.length;
+    }
 
-            const contentElement = document.createElement(readOnly ? 'div' : 'textarea');
-            contentElement.className = 'content';
-            if (readOnly) {
-                contentElement.textContent = message.content;
-            } else {
-                contentElement.value = message.content;
-                contentElement.style.resize = 'none'; /* Prevent resizing */
-                contentElement.style.overflow = 'hidden'; /* Remove scrollbars */
-                contentElement.style.height = 'auto'; /* Expand to fit content */
-                contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
-            }
-            contentElement.readOnly = readOnly;
-
-            messageElement.appendChild(roleElement);
-            messageElement.appendChild(contentElement);
-
-            return messageElement;
-        }
-
-        function adjustTextareaHeight(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-
-        function removeFromFineTunePanel(fineTuneItem) {
-            const fineTuneItemsContainer = document.getElementById('fine-tune-items');
-            fineTuneItemsContainer.removeChild(fineTuneItem);
-            fineTuneItems = fineTuneItems.filter(item => item !== fineTuneItem);
-            updateFineTuneCounter();
-        }
-
-        async function saveFineTune() {
-            const fineTuneData = fineTuneItems.map(item => {
-                const system = item.querySelector('.fine-tune-message.system .content').textContent;
-                const user = item.querySelector('.fine-tune-message.user .content').textContent;
-                const assistant = item.querySelector('.fine-tune-message.assistant .content').value;
-                return [
-                    { role: 'system', content: system },
-                    { role: 'user', content: user },
-                    { role: 'assistant', content: assistant }
-                ];
-            });
-
-            const overlay = document.getElementById('overlay');
-            const loader = document.getElementById('loader');
-            const saveButton = document.getElementById('save-button');
-
-            // Show loading animation
-            overlay.style.display = 'block';
-            loader.style.display = 'block';
-            saveButton.style.display = 'none'; // Hide save button
-
-            try {
-                const response = await fetch('http://127.0.0.1:5000/save-finetune', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(fineTuneData),
-                });
-
-                const data = await response.json();
-
-                // Hide loading animation
-                overlay.style.display = 'none';
-                loader.style.display = 'none';
-                saveButton.style.display = 'block'; // Show save button again
-
-                alert(data.message || data.error);
-                if (data.message) {
-                    document.getElementById('fine-tune-items').innerHTML = '';
-                    fineTuneItems = [];
-                    fetchFineTuneDataset(); // Reload the dataset
-                }
-            } catch (error) {
-                // Hide loading animation
-                overlay.style.display = 'none';
-                loader.style.display = 'none';
-                saveButton.style.display = 'block'; // Show save button again
-
-                alert('Error: Could not save fine-tune data.');
-            }
-        }
-
-        function displayFineTuneDataset(fineTuneDataset) {
-            const fineTuneItemsContainer = document.getElementById('fine-tune-items');
-            const fineTuneCounter = document.getElementById('fine-tune-counter');
-            fineTuneItemsContainer.innerHTML = ''; // Clear previous content
-            fineTuneItems = []; // Clear fineTuneItems array
-
-            fineTuneDataset.forEach(conversation => {
-                const fineTuneItem = document.createElement('div');
-                fineTuneItem.className = 'fine-tune-item collapsed';
-
-                const systemMessage = conversation.find(msg => msg.role === 'system');
-                const userMessage = conversation.find(msg => msg.role === 'user');
-                const assistantMessage = conversation.find(msg => msg.role === 'assistant');
-
-                const userElement = createFineTuneMessageElement(userMessage, true);
-                const systemElement = createFineTuneMessageElement(systemMessage, true);
-                const assistantElement = createFineTuneMessageElement(assistantMessage, false);
-
-                fineTuneItem.appendChild(userElement);
-                fineTuneItem.appendChild(systemElement);
-                fineTuneItem.appendChild(assistantElement);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'delete-button';
-                deleteButton.onclick = () => removeFromFineTunePanel(fineTuneItem);
-                fineTuneItem.appendChild(deleteButton);
-
-                const toggleButton = document.createElement('button');
-                toggleButton.className = 'toggle-button';
-                toggleButton.onclick = () => toggleExpandCollapse(fineTuneItem, toggleButton);
-                toggleButton.style.backgroundImage = "url('/static/images/expand.png')";
-                fineTuneItem.appendChild(toggleButton);
-
-                fineTuneItemsContainer.appendChild(fineTuneItem);
-                fineTuneItems.push(fineTuneItem);
-
-                adjustTextareaHeight(assistantElement.querySelector('textarea'));
-            });
-
-            fineTuneCounter.textContent = fineTuneDataset.length;
-        }
-
-        function updateFineTuneCounter() {
-            const fineTuneCounter = document.getElementById('fine-tune-counter');
-            fineTuneCounter.textContent = fineTuneItems.length;
-        }
-
-        window.onload = () => {
-            fetchHistory();
-            fetchFineTuneDataset();
-            setInterval(fetchHistory, 3000); // Update history every 3 seconds
-        };
-    </script>
+    window.onload = () => {
+        fetchHistory();
+        fetchFineTuneDataset();
+        setInterval(fetchHistory, 3000); // Update history every 3 seconds
+    };
+</script>
 </body>
 </html>

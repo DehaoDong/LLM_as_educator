@@ -128,6 +128,56 @@ def save_fine_tune():
 
         return jsonify({"error": message}), 500
 
+@app.route('/augment-finetune', methods=['POST'])
+def augment_fine_tune():
+    data = request.get_json()
+
+    if not isinstance(data, list) or len(data) != 3:
+        return jsonify({"error": "Invalid input data. Expected a list of three messages: system, user, and assistant."}), 400
+
+    system_message = next((msg for msg in data if msg['role'] == 'system'), None)
+    user_message = next((msg for msg in data if msg['role'] == 'user'), None)
+    assistant_message = next((msg for msg in data if msg['role'] == 'assistant'), None)
+
+    if not system_message or not user_message or not assistant_message:
+        return jsonify({"error": "Invalid input data. Each message must contain 'role' and 'content' fields."}), 400
+
+    try:
+        # Format the prompt for augmentation
+        arguments = {
+            "prompt": user_message['content'],
+            "response": assistant_message['content']
+        }
+        ad_prompt = pe.AD_PROMPT_TEMPLATE.format(**arguments)
+
+        # Use llm to generate 4 more user and assistant pairs
+        response = llm.invoke(ad_prompt)
+        # print(f'Response: {response}')
+
+        augmented_pairs = json.loads(response)
+        # print(f'Augmented pairs: {augmented_pairs}')
+
+        if not isinstance(augmented_pairs, list):
+            return jsonify({"error": "Invalid model response format. Expected a list of pairs."}), 500
+
+        new_records = []
+        for pair in augmented_pairs:
+            # print(f'Pair: {pair}')
+            new_record = [
+                system_message,
+                {"role": "user", "content": pair[0]['content']},
+                {"role": "assistant", "content": pair[1]['content']}
+            ]
+            new_records.append(new_record)
+
+        # print(f'New records: {new_records}')
+
+        return jsonify({"message": "Fine-tuning dataset augmented successfully.", "new_records": new_records}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # Serve the frontend
 @app.route('/')
 def serve_index():
