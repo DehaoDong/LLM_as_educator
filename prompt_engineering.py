@@ -111,13 +111,13 @@ Your target is to assess students' assignments based on the provided rubric (bet
 </rubric>
 The assignment content will be provided by user (not in system prompt)
 Do not say anything else except the marking, following the format of:
-{
+{{
     "feedback": "feedback content",
-    "(rubric part 1) / (rubric part 1 weight)": score for this part,
-    "(rubric part 2) / (rubric part 2 weight)": score for this part,
+    "(rubric part 1) / (rubric part 1 weight)": score,
+    "(rubric part 2) / (rubric part 2 weight)": score,
     ......other rubric parts
     "total score": weighted average score of all parts
-}
+}}
 <</SYS>>
 <<USR>>
 {assignment}

@@ -21,6 +21,7 @@ model = "CodeLlama-7b-Instruct-hf"
 ppl = get_model_pipeline(model)
 llm = CodeLlama(ppl=ppl)
 
+
 # Generate a response
 @app.route('/generate', methods=['POST'])
 def generate():
@@ -30,16 +31,26 @@ def generate():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    retriever = kb.get_knowledge_base_retriever()
+    # retriever = kb.get_knowledge_base_retriever()
+    #
+    # qa = RetrievalQA.from_chain_type(
+    #     llm=llm,
+    #     retriever=retriever,
+    #     chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
+    # )
+    #
+    # response = qa.invoke(prompt)
+    # response_content = response['result']
 
-    qa = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=retriever,
-        chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
-    )
+    assignment = prompt
 
-    response = qa.invoke(prompt)
-    response_content = response['result']
+    rubric = '''
+    Assignment: Investigating and Analysing Ethical Risks of a Digital Engagement application \n\nThis is an INDIVIDUAL assignment on Ethical Risk Assessment for the TEU00062 module. This assessment is worth 30% of the total TEU 00062 module mark. The deadline for submission is 12.00. noon Friday 31st March 2024. \n \nLearning outcomes: Upon completion of this assignment students should:\nBe able to identify the different stakeholders and organisational roles involved in developing and using AI-driven digital engagement application, and motivations. \nBe able to identify and analyse ethical risks in a digital engagement application.\nBe equipped to identify technical and governance mitigations of these risks\n \nSteps:\n \nSelect ONE real world application that embodies one or more AI-driven digital engagement techniques you have learnt about on this course, e.g. e.g. digital engagement techniques used in one applications such as social media, newsfeeds, search, eCommerce, elearning or digital humanities., or in an application you are familiar with e.g. interactive Game, Virtual Presence (i.e. VR /AR) etc. \nIdentify the different value chain stakeholder roles involved in this application scenario and where possible the actors (i.e. companies, organisations) carrying out those roles. including those involved in: data collection; AI model development; development and use of the application. \nUse social responsibility principles (see ethic lecture week 2) to identify and analyse real or potential ethical risks of the application, including classification of the affected stakeholders (hint: see also risks classified by Latzer et al 2016 \u2013 ethics lecture week 1), how severe the risk would be and how likely it is to occur.\nIdentify one or more mitigation measures that specific value-chain stakeholders may undertake to minimise the impact of the risk you think is most harmful. These could be technical measures, organisational governance measures or measure involving additional engagement with affected individuals or groups.\n \nStructure of Assignment Report. \nStructure the Report (4000 word max excluding figures and references), under the following heading [indicative percentage of assignment mark per section]. Please provide references\n \nDescription of Application [20%]\n<describe your selected application, explaining what it does, the role AI and data collection plays in its digital engagement features, and the benefits it provides>\n\nIdentification of Stakeholder Roles involved in the application and its governance [10%]\n<describe the stakeholder roles undertaken in the development, use and governance of the application, and which organization take those roles and the benefits they derive from their involvement. Include roles that may be indirectly affected by the application. >\n\nIdentification of Ethical Risks [40%]\n<Identify the ethical risks that may be raised by your application under the social responsibility categories below (more details in ethics lecture week 2). For each risk identify which stakeholder may be affected, and assess how severe the impact would be for each stakeholder (Low, Medium, High) and the likelihood of that risk being incurred (Low, Medium, High), justifying your assessment, even if you think there is no risk under that heading.>\nHuman Rights\nLabour Practices\nThe Environment\nFair Operating Procedures\nConsumer Issues\nCommunity Involvement and Development\n \nDiscussion of Mitigations Measures for Risk [20%]\n< For one of the risks you consider more severe, describe mitigation measures that could be taken. Explain how the measure would reduce or eliminate the likelihood and impact of the risk. Explain which stakeholders would be involved, or would have to interact in implementing the measure, identifying if this is a governance measure an organization can undertake itself or in collaboration with other parties, e.g. regulators or external stakeholder..>\n\nReferences [10%]\nInclude references to source you use for you analysis, which could be academic or policy papers, blogs, information from company web site or news stories.\n
+    '''
+
+    filled_prompt = pe.FE_PROMPT_TEMPLATE.format(rubric=rubric, assignment=assignment)
+
+    response_content = llm.invoke(filled_prompt)
 
     web_response = {
         "response": response_content,
@@ -47,9 +58,11 @@ def generate():
 
     return jsonify(web_response)
 
+
 # Check if the file is allowed
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 
 # Upload files
 @app.route('/upload', methods=['POST'])
@@ -72,6 +85,7 @@ def upload_file():
 
     return jsonify({"message": "Files uploaded and knowledge base updated successfully."})
 
+
 # Get history
 @app.route('/history', methods=['GET'])
 def get_history():
@@ -83,6 +97,7 @@ def get_history():
     else:
         return jsonify([])
 
+
 # Get fine-tune dataset
 @app.route('/fine-tune-dataset', methods=['GET'])
 def get_fine_tune_dataset():
@@ -92,6 +107,7 @@ def get_fine_tune_dataset():
         return jsonify(fine_tune_dataset)
     else:
         return jsonify([])
+
 
 # Save fine-tune dataset
 @app.route('/save-finetune', methods=['POST'])
@@ -106,7 +122,8 @@ def save_fine_tune():
             if not isinstance(message, dict):
                 return jsonify({"error": "Invalid dataset format. Each message must be a dictionary."}), 400
             if not all(key in message for key in ['role', 'content']):
-                return jsonify({"error": "Invalid dataset format. Each message must contain 'role' and 'content'."}), 400
+                return jsonify(
+                    {"error": "Invalid dataset format. Each message must contain 'role' and 'content'."}), 400
         if not any(message['role'] == 'assistant' for message in conversation):
             return jsonify({"error": "Each conversation must include an 'assistant' message."}), 400
 
@@ -135,13 +152,15 @@ def save_fine_tune():
 
         return jsonify({"error": message}), 500
 
+
 # Augment a conversation
 @app.route('/augment-finetune', methods=['POST'])
 def augment_fine_tune():
     data = request.get_json()
 
     if not isinstance(data, list) or len(data) != 3:
-        return jsonify({"error": "Invalid input data. Expected a list of three messages: system, user, and assistant."}), 400
+        return jsonify(
+            {"error": "Invalid input data. Expected a list of three messages: system, user, and assistant."}), 400
 
     system_message = next((msg for msg in data if msg['role'] == 'system'), None)
     user_message = next((msg for msg in data if msg['role'] == 'user'), None)
@@ -191,10 +210,12 @@ def augment_fine_tune():
 def serve_index():
     return render_template('index.html')
 
+
 # Monitor page
 @app.route('/monitor')
 def serve_monitor():
     return render_template('monitor.html')
+
 
 # Start the Flask application
 if __name__ == '__main__':

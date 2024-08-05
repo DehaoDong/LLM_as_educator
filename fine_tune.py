@@ -68,9 +68,11 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
 
         tokenizer.pad_token = tokenizer.eos_token
 
+        print(f'tokenizer.model_max_length: {tokenizer.model_max_length}')
+
         # Tokenize the formatted input data
         def tokenize_function(examples):
-            tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=1024, padding=True)
+            tokenized_inputs = tokenizer(examples["inputs"], truncation=True, max_length=100000, padding=True)
             # Self-supervised learning
             tokenized_inputs["labels"] = tokenized_inputs["input_ids"].copy()
             return tokenized_inputs

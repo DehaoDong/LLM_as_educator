@@ -13,3 +13,5 @@ peft
 transformers
 bitsandbytes
 langchain-chroma
+openpyxl
+python-docx
