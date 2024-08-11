@@ -1,3 +1,6 @@
+import torch
+from transformers import pipeline
+
 from fine_tune import fine_tune
 from model import get_model_pipeline, CodeLlama
 import prompt_engineering as pe
@@ -5,19 +8,20 @@ import prompt_engineering as pe
 
 model = "CodeLlama-7b-Instruct-hf"
 
-# success, message = fine_tune(model)
-# print(success, message)
+instruction = [
+    {
+        "role": "user",
+        "content": "Who are you?"
+    }
 
-arguments = {
-    "prompt": "Please introduce yourself.",
-    "response": "I am Educator LLaMA, an AI assistant who specializes in computer science."
-}
+]
 
-ad_prompt = pe.AD_PROMPT_TEMPLATE.format(**arguments)
+ppl = pipeline(task="text-generation",
+                            model="meta-llama/CodeLlama-7b-Instruct-hf",
+                            max_new_tokens=1024,
+                            device_map="auto",
+                            torch_dtype=torch.bfloat16)
 
-ppl = get_model_pipeline(model)
-llm = CodeLlama(ppl=ppl)
-
-response = llm.invoke(ad_prompt)
+response = ppl(instruction)
 
 print(response)
