@@ -124,7 +124,7 @@ class CodeLlama(LLM):
         result = self.ppl(instruction)
         print(json.dumps(result, indent=2))
 
-        self.__save_history(result)
+        # self.__save_history(result)
 
         response = self.__extract_answer(result)
         return response

@@ -1,23 +1,16 @@
 import torch
 from transformers import pipeline
 
-from fine_tune import fine_tune
-from model import get_model_pipeline, CodeLlama
-import prompt_engineering as pe
-
-
-model = "CodeLlama-7b-Instruct-hf"
-
 instruction = [
     {
         "role": "user",
-        "content": "Who are you?"
+        "content": "What are some of the accepted general principles of European Union law?"
     }
 
 ]
 
 ppl = pipeline(task="text-generation",
-                            model="meta-llama/CodeLlama-7b-Instruct-hf",
+                            model="meta-llama/CodeLlama-13b-Instruct-hf",
                             max_new_tokens=1024,
                             device_map="auto",
                             torch_dtype=torch.bfloat16)
