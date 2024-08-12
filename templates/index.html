@@ -13,7 +13,7 @@
             flex-direction: column;
             align-items: center;
             height: 100vh;
-            background-color: #fff; /* Unified background color */
+            background-color: #fff;
             overflow: hidden;
         }
         #header {
@@ -29,25 +29,48 @@
             left: 0;
             z-index: 1000;
             display: flex;
-            justify-content: space-between; /* To align items horizontally */
+            justify-content: space-between;
             align-items: center;
-            box-sizing: border-box; /* Ensures padding is included in the width */
+            box-sizing: border-box;
+        }
+        #model-selector {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        #model-selector select {
+            font-size: 14px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-weight: bold; /* Bold the model selections */
+        }
+        #prompt-selector {
+            font-weight: bold;
+            position: fixed;
+            left: 300px;
+        }
+        #prompt-selector select {
+            font-size: 14px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-weight: bold; /* Bold the model selections */
         }
         #chat-container {
             width: 80%;
             max-width: 800px;
-            margin-top: 70px; /* Increased margin to avoid overlap with header */
+            margin-top: 50px; /* Adjusted margin to account for header height */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #fff; /* Unified background color */
-            overflow-y: auto; /* Allow vertical scrolling */
-            padding-bottom: 80px; /* Ensure enough space for input box */
+            background-color: #fff;
+            overflow-y: auto;
+            padding-bottom: 80px;
         }
         #chat-box {
             flex-grow: 1;
             padding: 20px;
-            background-color: #fff; /* Unified background color */
+            background-color: #fff;
         }
         .message {
             display: flex;
@@ -70,7 +93,7 @@
             padding: 10px;
             border-radius: 5px;
             max-width: 70%;
-            white-space: pre-wrap; /* Ensure whitespace is preserved */
+            white-space: pre-wrap;
         }
         .message.user .text {
             background-color: #e0e0e0;
@@ -86,18 +109,18 @@
         }
         .input-container {
             display: flex;
-            width: 100%; /* Full width */
+            width: 100%;
             max-width: 800px;
             position: fixed;
             bottom: 0;
             background-color: #fff;
             padding: 10px;
-            box-sizing: border-box; /* Ensures padding is included in the width */
+            box-sizing: border-box;
             align-items: center;
             justify-content: center;
         }
         textarea {
-            width: 70%; /* Adjusted width */
+            width: 70%;
             margin: 0 10px;
             padding: 10px;
             font-size: 16px;
@@ -105,7 +128,7 @@
             border-radius: 5px;
             resize: none;
             background-color: #e0e0e0;
-            box-shadow: none; /* Remove box shadow */
+            box-shadow: none;
         }
         pre {
             background-color: #2d2d2d;
@@ -113,7 +136,7 @@
             padding: 10px;
             border-radius: 5px;
             overflow-x: auto;
-            white-space: pre-wrap; /* Ensure long lines wrap */
+            white-space: pre-wrap;
         }
         code {
             font-family: monospace;
@@ -132,18 +155,29 @@
             cursor: pointer;
         }
         .file-upload-button img {
-            width: 32px; /* Adjust size as needed */
+            width: 32px;
             height: 32px;
             cursor: pointer;
         }
         .loader {
-            border: 8px solid #f3f3f3; /* Light grey */
-            border-top: 8px solid #3498db; /* Blue */
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
             border-radius: 50%;
             width: 32px;
             height: 32px;
             animation: spin 2s linear infinite;
-            display: none; /* Hidden by default */
+            display: none;
+        }
+        .model-loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 15px;
+            height: 15px;
+            animation: spin 2s linear infinite;
+            position: fixed;
+            left: 240px;
+            display: none;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -157,13 +191,29 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            display: none; /* Hidden by default */
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="header">
-        Meta CodeLlama-7B-Instruct
+        <div id="model-selector">
+            <select id="model-dropdown" onchange="changeModel()">
+            <option value="CodeLlama-7b-Instruct-hf" data-finetuned="false">CodeLlama-7B</option>
+            <option value="CodeLlama-13b-Instruct-hf" data-finetuned="false">CodeLlama-13B</option>
+            <option value="CodeLlama-7b-Instruct-hf" data-finetuned="true">Fine-tuned CodeLlama-7B</option>
+            <option value="CodeLlama-13b-Instruct-hf" data-finetuned="true">Fine-tuned CodeLlama-13B</option>
+        </select>
+        </div>
+        <div class="model-loader" id="model-loader" style="display:none;"></div>
+        <div id="prompt-selector">
+            <select id="prompt-dropdown">
+            <option value="BASE">Basic</option>
+            <option value="QA">Question Answering</option>
+            <option value="RAG">Question Answering (RAG)</option>
+            <option value="AA">Assignment Assessment</option>
+        </select>
+        </div>
         <a href="monitor" target="_blank">
             <img src="/static/images/monitor.png" alt="Monitor" width="32" height="32">
         </a>
@@ -174,7 +224,7 @@
             <textarea id="prompt" rows="3" onkeydown="handleKeyDown(event)"></textarea>
             <div class="file-upload-wrapper">
                 <label class="file-upload-button" for="file-upload">
-                    <img src="/static/images/upload.png" alt="Upload"> <!-- Use your image path here -->
+                    <img src="/static/images/upload.png" alt="Upload">
                 </label>
                 <input type="file" id="file-upload" accept=".pdf,.txt,.doc,.docx" multiple onchange="uploadDocument()">
             </div>
@@ -293,7 +343,7 @@
             // Show loading animation
             overlay.style.display = 'block';
             loader.style.display = 'block';
-            uploadButton.style.display = 'none'; // Hide upload button
+            uploadButton.style.display = 'none';
 
             try {
                 const response = await fetch('http://127.0.0.1:5000/upload', {
@@ -306,18 +356,44 @@
                 // Hide loading animation
                 overlay.style.display = 'none';
                 loader.style.display = 'none';
-                uploadButton.style.display = 'inline-block'; // Show upload button again
+                uploadButton.style.display = 'inline-block';
 
                 alert(data.message);
             } catch (error) {
                 // Hide loading animation
                 overlay.style.display = 'none';
                 loader.style.display = 'none';
-                uploadButton.style.display = 'inline-block'; // Show upload button again
+                uploadButton.style.display = 'inline-block';
 
                 alert('Error: Could not upload document.');
             }
         }
+
+        async function changeModel() {
+        const dropdown = document.getElementById('model-dropdown');
+        const selectedModel = dropdown.value;
+        const isFinetuned = dropdown.options[dropdown.selectedIndex].getAttribute('data-finetuned');
+
+        const loader = document.getElementById('model-loader');
+        loader.style.display = 'block'; // Show the loader
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/change_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ model: selectedModel, is_finetuned: isFinetuned === 'true' }),
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        } catch (error) {
+            alert('Error: Could not change the model.');
+        } finally {
+            loader.style.display = 'none'; // Hide the loader
+        }
+    }
     </script>
 </body>
 </html>

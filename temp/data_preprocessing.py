@@ -66,7 +66,7 @@ for i in range(1, 17):
 json_dataset = json.dumps(dataset, indent=4)
 
 # Save the JSON dataset to a file
-with open('generated_dataset.json', 'w') as f:
+with open('../generated_dataset.json', 'w') as f:
     f.write(json_dataset)
 
 # Optionally print the first conversation in the dataset

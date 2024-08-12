@@ -11,24 +11,26 @@ from concurrent.futures import ThreadPoolExecutor
 HISTORY_FILE = 'history/history.json'
 HISTORY_LIMIT = 20
 
+MAX_NEW_TOKEN = 500
+
 # For saving history in a separate thread
 executor = ThreadPoolExecutor(max_workers=1)
 
-def get_model_pipeline(model):
+
+def get_model_pipeline(model, is_finetuned=False):
     model_id = f"meta-llama/{model}"
     fine_tuned_model = f"fine_tuning/fine_tuned_model/{model}_QLoRA"
 
-    # if exists fine-tuned model return fine-tuned model, else return the base model
-    if not os.path.exists(fine_tuned_model):
-        print("Loading base model...")
+    if not is_finetuned or not os.path.exists(fine_tuned_model):
+        print(f"Loading base {model}...")
         ppl = pipeline(task="text-generation",
-                            model="meta-llama/CodeLlama-7b-Instruct-hf",
-                            max_new_tokens=1024,
-                            device_map="auto",
-                            torch_dtype=torch.bfloat16)
+                       model=model_id,
+                       max_new_tokens=MAX_NEW_TOKEN,
+                       device_map="auto",
+                       torch_dtype=torch.bfloat16)
         return ppl
     else:
-        print("Loading fine-tuned model...")
+        print(f"Loading fine-tuned {model}...")
         # Define the quantization configuration
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -56,11 +58,12 @@ def get_model_pipeline(model):
         ppl = pipeline(task="text-generation",
                        model=model,
                        tokenizer=tokenizer,
-                       max_new_tokens=1024,
+                       max_new_tokens=MAX_NEW_TOKEN,
                        device_map="auto",
                        torch_dtype=torch.bfloat16)
 
         return ppl
+
 
 class CodeLlama(LLM):
     ppl: Any
@@ -124,7 +127,7 @@ class CodeLlama(LLM):
         result = self.ppl(instruction)
         print(json.dumps(result, indent=2))
 
-        # self.__save_history(result)
+        self.__save_history(result)
 
         response = self.__extract_answer(result)
         return response
@@ -132,4 +135,3 @@ class CodeLlama(LLM):
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
         return {"pipeline": self.ppl}
-

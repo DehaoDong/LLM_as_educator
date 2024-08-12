@@ -16,9 +16,10 @@ app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
 app.config['FINE_TUNE_DATASET'] = 'fine_tuning/datasets/fine_tune_dataset.json'
 
 model = "CodeLlama-7b-Instruct-hf"
+is_finetuned = False
 
 # LLM handler
-ppl = get_model_pipeline(model)
+ppl = get_model_pipeline(model, is_finetuned=False)
 llm = CodeLlama(ppl=ppl)
 
 
@@ -31,6 +32,14 @@ def generate():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
+    # filled_prompt = pe.BASE_PROMPT_TEMPLATE.format(prompt=prompt)
+
+    filled_prompt = pe.QA_PROMPT_TEMPLATE.format(question=prompt)
+
+    response_content = llm.invoke(filled_prompt)
+
+
+
     # retriever = kb.get_knowledge_base_retriever()
     #
     # qa = RetrievalQA.from_chain_type(
@@ -38,25 +47,48 @@ def generate():
     #     retriever=retriever,
     #     chain_type_kwargs={"prompt": pe.QA_PROMPT_TEMPLATE}
     # )
-    #
+
     # response = qa.invoke(prompt)
     # response_content = response['result']
 
-    assignment = prompt
+    # assignment = prompt
+    #
+    # rubric = '''
+    # Assignment: Investigating and Analysing Ethical Risks of a Digital Engagement application \n\nThis is an INDIVIDUAL assignment on Ethical Risk Assessment for the TEU00062 module. This assessment is worth 30% of the total TEU 00062 module mark. The deadline for submission is 12.00. noon Friday 31st March 2024. \n \nLearning outcomes: Upon completion of this assignment students should:\nBe able to identify the different stakeholders and organisational roles involved in developing and using AI-driven digital engagement application, and motivations. \nBe able to identify and analyse ethical risks in a digital engagement application.\nBe equipped to identify technical and governance mitigations of these risks\n \nSteps:\n \nSelect ONE real world application that embodies one or more AI-driven digital engagement techniques you have learnt about on this course, e.g. e.g. digital engagement techniques used in one applications such as social media, newsfeeds, search, eCommerce, elearning or digital humanities., or in an application you are familiar with e.g. interactive Game, Virtual Presence (i.e. VR /AR) etc. \nIdentify the different value chain stakeholder roles involved in this application scenario and where possible the actors (i.e. companies, organisations) carrying out those roles. including those involved in: data collection; AI model development; development and use of the application. \nUse social responsibility principles (see ethic lecture week 2) to identify and analyse real or potential ethical risks of the application, including classification of the affected stakeholders (hint: see also risks classified by Latzer et al 2016 \u2013 ethics lecture week 1), how severe the risk would be and how likely it is to occur.\nIdentify one or more mitigation measures that specific value-chain stakeholders may undertake to minimise the impact of the risk you think is most harmful. These could be technical measures, organisational governance measures or measure involving additional engagement with affected individuals or groups.\n \nStructure of Assignment Report. \nStructure the Report (4000 word max excluding figures and references), under the following heading [indicative percentage of assignment mark per section]. Please provide references\n \nDescription of Application [20%]\n<describe your selected application, explaining what it does, the role AI and data collection plays in its digital engagement features, and the benefits it provides>\n\nIdentification of Stakeholder Roles involved in the application and its governance [10%]\n<describe the stakeholder roles undertaken in the development, use and governance of the application, and which organization take those roles and the benefits they derive from their involvement. Include roles that may be indirectly affected by the application. >\n\nIdentification of Ethical Risks [40%]\n<Identify the ethical risks that may be raised by your application under the social responsibility categories below (more details in ethics lecture week 2). For each risk identify which stakeholder may be affected, and assess how severe the impact would be for each stakeholder (Low, Medium, High) and the likelihood of that risk being incurred (Low, Medium, High), justifying your assessment, even if you think there is no risk under that heading.>\nHuman Rights\nLabour Practices\nThe Environment\nFair Operating Procedures\nConsumer Issues\nCommunity Involvement and Development\n \nDiscussion of Mitigations Measures for Risk [20%]\n< For one of the risks you consider more severe, describe mitigation measures that could be taken. Explain how the measure would reduce or eliminate the likelihood and impact of the risk. Explain which stakeholders would be involved, or would have to interact in implementing the measure, identifying if this is a governance measure an organization can undertake itself or in collaboration with other parties, e.g. regulators or external stakeholder..>\n\nReferences [10%]\nInclude references to source you use for you analysis, which could be academic or policy papers, blogs, information from company web site or news stories.\n
+    # '''
+    #
+    # filled_prompt = pe.FE_PROMPT_TEMPLATE.format(rubric=rubric, assignment=assignment)
 
-    rubric = '''
-    Assignment: Investigating and Analysing Ethical Risks of a Digital Engagement application \n\nThis is an INDIVIDUAL assignment on Ethical Risk Assessment for the TEU00062 module. This assessment is worth 30% of the total TEU 00062 module mark. The deadline for submission is 12.00. noon Friday 31st March 2024. \n \nLearning outcomes: Upon completion of this assignment students should:\nBe able to identify the different stakeholders and organisational roles involved in developing and using AI-driven digital engagement application, and motivations. \nBe able to identify and analyse ethical risks in a digital engagement application.\nBe equipped to identify technical and governance mitigations of these risks\n \nSteps:\n \nSelect ONE real world application that embodies one or more AI-driven digital engagement techniques you have learnt about on this course, e.g. e.g. digital engagement techniques used in one applications such as social media, newsfeeds, search, eCommerce, elearning or digital humanities., or in an application you are familiar with e.g. interactive Game, Virtual Presence (i.e. VR /AR) etc. \nIdentify the different value chain stakeholder roles involved in this application scenario and where possible the actors (i.e. companies, organisations) carrying out those roles. including those involved in: data collection; AI model development; development and use of the application. \nUse social responsibility principles (see ethic lecture week 2) to identify and analyse real or potential ethical risks of the application, including classification of the affected stakeholders (hint: see also risks classified by Latzer et al 2016 \u2013 ethics lecture week 1), how severe the risk would be and how likely it is to occur.\nIdentify one or more mitigation measures that specific value-chain stakeholders may undertake to minimise the impact of the risk you think is most harmful. These could be technical measures, organisational governance measures or measure involving additional engagement with affected individuals or groups.\n \nStructure of Assignment Report. \nStructure the Report (4000 word max excluding figures and references), under the following heading [indicative percentage of assignment mark per section]. Please provide references\n \nDescription of Application [20%]\n<describe your selected application, explaining what it does, the role AI and data collection plays in its digital engagement features, and the benefits it provides>\n\nIdentification of Stakeholder Roles involved in the application and its governance [10%]\n<describe the stakeholder roles undertaken in the development, use and governance of the application, and which organization take those roles and the benefits they derive from their involvement. Include roles that may be indirectly affected by the application. >\n\nIdentification of Ethical Risks [40%]\n<Identify the ethical risks that may be raised by your application under the social responsibility categories below (more details in ethics lecture week 2). For each risk identify which stakeholder may be affected, and assess how severe the impact would be for each stakeholder (Low, Medium, High) and the likelihood of that risk being incurred (Low, Medium, High), justifying your assessment, even if you think there is no risk under that heading.>\nHuman Rights\nLabour Practices\nThe Environment\nFair Operating Procedures\nConsumer Issues\nCommunity Involvement and Development\n \nDiscussion of Mitigations Measures for Risk [20%]\n< For one of the risks you consider more severe, describe mitigation measures that could be taken. Explain how the measure would reduce or eliminate the likelihood and impact of the risk. Explain which stakeholders would be involved, or would have to interact in implementing the measure, identifying if this is a governance measure an organization can undertake itself or in collaboration with other parties, e.g. regulators or external stakeholder..>\n\nReferences [10%]\nInclude references to source you use for you analysis, which could be academic or policy papers, blogs, information from company web site or news stories.\n
-    '''
-
-    filled_prompt = pe.FE_PROMPT_TEMPLATE.format(rubric=rubric, assignment=assignment)
-
-    response_content = llm.invoke(filled_prompt)
+    # response_content = llm.invoke(filled_prompt)
 
     web_response = {
         "response": response_content,
     }
 
     return jsonify(web_response)
+
+@app.route('/change_model', methods=['POST'])
+def change_model():
+    global model, is_finetuned, ppl, llm
+
+    data = request.get_json()
+    selected_model = data.get('model', '')
+    ft_flag = data.get('is_finetuned', False)
+
+    # print(f'slected model: {selected_model}')
+    # print(f'is_finetuned: {is_finetuned}')
+
+    if selected_model and (selected_model != model or ft_flag != is_finetuned):
+        del ppl, llm
+        torch.cuda.empty_cache()
+
+        model = selected_model
+        is_finetuned = ft_flag
+        ppl = get_model_pipeline(model, is_finetuned)
+        llm = CodeLlama(ppl=ppl)
+        return jsonify({"message": f"Model changed to {model} (Fine-tuned: {is_finetuned}) successfully."})
+    else:
+        return jsonify({"message": "No change in model or invalid model selected."}), 400
 
 
 # Check if the file is allowed
@@ -175,7 +207,7 @@ def augment_fine_tune():
             "prompt": user_message['content'],
             "response": assistant_message['content']
         }
-        ad_prompt = pe.AD_PROMPT_TEMPLATE.format(**arguments)
+        ad_prompt = pe.DA_PROMPT_TEMPLATE.format(**arguments)
 
         # Use llm to generate 4 more user and assistant pairs
         response = llm.invoke(ad_prompt)

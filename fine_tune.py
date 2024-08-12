@@ -5,7 +5,7 @@ import torch
 import datasets
 
 
-def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
+def fine_tune(model_name, learning_rate=3e-4, num_train_epochs=30):
     try:
         model_id = f"meta-llama/{model_name}"
         fine_tuned_model = f"fine_tuning/fine_tuned_model/{model_name}_QLoRA"
@@ -82,8 +82,8 @@ def fine_tune(model_name, learning_rate=1e-4, num_train_epochs=30):
         training_args = TrainingArguments(
             output_dir=fine_tuned_model,
             learning_rate=learning_rate,
-            per_device_train_batch_size=1,
-            per_device_eval_batch_size=1,
+            per_device_train_batch_size=8,
+            per_device_eval_batch_size=8,
             num_train_epochs=num_train_epochs,
             weight_decay=0.01,
             fp16=True,
